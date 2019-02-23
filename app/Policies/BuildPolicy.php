@@ -22,7 +22,7 @@ class BuildPolicy extends AbstractPolicy
                     $q->whereHas(
                         'projects',
                         function ($q1) use ($build) {
-                            $q->where('id', $build->project->id);
+                            $q1->where('id', $build->project->id);
                         }
                     );
                 }

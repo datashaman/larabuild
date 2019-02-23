@@ -7,6 +7,14 @@ use App\Models\Team;
 
 class TeamPolicy extends AbstractPolicy
 {
+    protected function userIsInTeam(User $user, Team $team)
+    {
+        return $user
+            ->teams()
+            ->where('teams.id', $team->id)
+            ->exists();
+    }
+
     /**
      * Determine whether the user can view the team index.
      *
@@ -27,7 +35,7 @@ class TeamPolicy extends AbstractPolicy
      */
     public function view(User $user, Team $team)
     {
-        return $user->team->id === $team->id;
+        return $this->userIsInTeam($user, $team);
     }
 
     /**
@@ -50,8 +58,8 @@ class TeamPolicy extends AbstractPolicy
      */
     public function update(User $user, Team $team)
     {
-        return $user->team->id === $team->id
-            && $user->hasRole('team-admin');
+        return $this->userIsInTeam($user, $team)
+            && $user->hasRole('team-admin', $team);
     }
 
     /**

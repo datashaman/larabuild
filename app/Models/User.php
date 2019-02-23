@@ -73,6 +73,18 @@ class User extends Authenticatable
     }
 
     /**
+     * @param string $role
+     */
+    public function removeRole(string $role)
+    {
+        if (in_array($role, config('larabuild.roles'))) {
+            $this->userRoles()
+                ->where('role', $role)
+                ->delete();
+        }
+    }
+
+    /**
      * @return array
      */
     public function getRolesAttribute()

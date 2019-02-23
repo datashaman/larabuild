@@ -27,7 +27,15 @@ class ProjectPolicy extends AbstractPolicy
      */
     public function view(User $user, Project $project)
     {
-        //
+        return $user
+            ->teams()
+            ->whereHas(
+                'projects',
+                function ($q) use ($project) {
+                    return $q->where('id', $project->id);
+                }
+            )
+            ->exists();
     }
 
     /**

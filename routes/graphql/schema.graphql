@@ -2,22 +2,22 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
 type Query @middleware(checks: ["auth:api"]) {
-    builds: [Build!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Build")
-    build(hash: String! @eq): Build @find
+    builds: [Build!]! @paginate(builder: "App\\Queries\\Builds@resolve") @can(if: "index", model: "App\\Models\\Build")
+    build(hash: String!): Build
 
     me: User @auth
     myTeams: [Team!]!
 
-    project(id: ID! @eq): Project @find
+    project(id: ID!): Project
     projects: [Project!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Project")
     projectBuilds(project_id: ID!): [Build!]
 
-    team(id: ID! @eq): Team @find
+    team(id: ID!): Team
     teams: [Team!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Team")
     teamProjects(team_id: ID! @eq): [Project!] @all
     teamUsers(team_id: ID!): [User!]
 
-    user(id: ID! @eq): User @find
+    user(id: ID!): User
     users: [User!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\User")
     userTeams(user_id: ID!): [Team!]
 }

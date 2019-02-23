@@ -82,33 +82,51 @@ class UserQueriesTest extends PassportTestCase
             ->assertExactJson($expected);
     }
 
-    public function testUserQuery()
+    protected function postUserQuery($id)
     {
-        $user = factory(User::class)->create();
-
-        $expected = [
-            'data' => [
-                'user' => [
-                    'id' => (string) $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
-            ],
-        ];
-
-        $this
+        return $this
             ->postJson(
                 '/graphql',
                 [
                     'query' => "{
-                        user(id: {$user->id}) {
+                        user(id: {$id}) {
                             id
                             name
                             email
                         }
                     }",
                 ]
-            )
+            );
+    }
+
+    public function testUserQueryAsOther()
+    {
+        $user = factory(User::class)->create();
+
+        $this
+            ->postUserQuery($user->id)
+            ->assertStatus(200)
+            ->assertJsonFragment(
+                [
+                    'message' => 'Not authorized to access this field.',
+                ]
+            );
+    }
+
+    public function testUserQuery()
+    {
+        $expected = [
+            'data' => [
+                'user' => [
+                    'id' => (string) $this->user->id,
+                    'name' => $this->user->name,
+                    'email' => $this->user->email,
+                ],
+            ],
+        ];
+
+        $this
+            ->postUserQuery($this->user->id)
             ->assertStatus(200)
             ->assertExactJson($expected);
     }
