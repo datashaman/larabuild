@@ -9,12 +9,11 @@ php:
 services:
   - mysql
 
-before_install:
-  - mysql -e 'CREATE DATABASE larabuild_testing;'
-  - cp .env.travis .env.testing
-
 install:
   - composer install
+  - mysql -e 'CREATE DATABASE larabuild_testing;'
+  - cp .env.travis .env.testing
+  - php artisan passport:keys
 
 cache:
   directories:
