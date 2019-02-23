@@ -5,6 +5,7 @@ namespace App\Queries;
 use App\Models\User as UserModel;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
+use Nuwave\Lighthouse\Execution\Utils\GlobalId;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class User
@@ -21,7 +22,8 @@ class User
      */
     public function resolve($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
-        $user = UserModel::findOrFail($args['id']);
+        $id = GlobalId::decodeID($args['id']);
+        $user = UserModel::findOrFail($id);
 
         if (auth()->user()->can('view', $user)) {
             return $user;

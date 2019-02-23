@@ -3,7 +3,7 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
 type Query @middleware(checks: ["auth:api"]) {
     builds: [Build!]! @paginate(builder: "App\\Queries\\Builds@resolve") @can(if: "index", model: "App\\Models\\Build")
-    build(hash: String!): Build
+    build(id: ID!): Build
 
     me: User @auth
     myTeams: [Team!]!
@@ -46,8 +46,7 @@ type Mutation @middleware(checks: ["auth:api"]) {
 }
 
 type Build {
-    id: ID!
-    hash: String!
+    id: ID! @globalId
     project: Project!
     user: User!
     status: String!
@@ -78,7 +77,7 @@ type Team {
 }
 
 type User {
-    id: ID!
+    id: ID! @globalId
     name: String!
     email: String!
     created_at: DateTime!

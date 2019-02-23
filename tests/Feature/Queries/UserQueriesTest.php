@@ -4,6 +4,7 @@ namespace Tests\Feature\Queries;
 
 use App\Models\Team;
 use App\Models\User;
+use Nuwave\Lighthouse\Execution\Utils\GlobalId;
 use Tests\PassportTestCase;
 
 class UserQueriesTest extends PassportTestCase
@@ -55,7 +56,7 @@ class UserQueriesTest extends PassportTestCase
             ->map(
                 function ($user) {
                     return [
-                        'id' => (string) $user->id,
+                        'id' => GlobalId::encode('User', $user->id),
                         'name' => $user->name,
                     ];
                 }
@@ -84,12 +85,20 @@ class UserQueriesTest extends PassportTestCase
 
     protected function postUserQuery($id)
     {
+        $query = "{
+            user(id: \"{$id}\") {
+                id
+                name
+                email
+            }
+        }";
+
         return $this
             ->postJson(
                 '/graphql',
                 [
                     'query' => "{
-                        user(id: {$id}) {
+                        user(id: \"{$id}\") {
                             id
                             name
                             email
@@ -102,9 +111,10 @@ class UserQueriesTest extends PassportTestCase
     public function testUserQueryAsOther()
     {
         $user = factory(User::class)->create();
+        $globalId = GlobalId::encode('User', $user->id);
 
         $this
-            ->postUserQuery($user->id)
+            ->postUserQuery($globalId)
             ->assertStatus(200)
             ->assertJsonFragment(
                 [
@@ -115,10 +125,12 @@ class UserQueriesTest extends PassportTestCase
 
     public function testUserQuery()
     {
+        $globalId = GlobalId::encode('User', $this->user->id);
+
         $expected = [
             'data' => [
                 'user' => [
-                    'id' => (string) $this->user->id,
+                    'id' => $globalId,
                     'name' => $this->user->name,
                     'email' => $this->user->email,
                 ],
@@ -126,7 +138,7 @@ class UserQueriesTest extends PassportTestCase
         ];
 
         $this
-            ->postUserQuery($this->user->id)
+            ->postUserQuery($globalId)
             ->assertStatus(200)
             ->assertExactJson($expected);
     }

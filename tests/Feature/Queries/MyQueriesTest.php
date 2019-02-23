@@ -5,6 +5,7 @@ namespace Tests\Feature\Queries;
 use App\Models\Build;
 use App\Models\Project;
 use App\Models\Team;
+use Nuwave\Lighthouse\Execution\Utils\GlobalId;
 use Tests\PassportTestCase;
 
 class MyQueriesTest extends PassportTestCase
@@ -14,7 +15,7 @@ class MyQueriesTest extends PassportTestCase
         $expected = [
             'data' => [
                 'me' => [
-                    'id' => (string) $this->user->id,
+                    'id' => GlobalId::encode('User', $this->user->id),
                     'name' => $this->user->name,
                     'email' => $this->user->email,
                 ],

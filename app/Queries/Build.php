@@ -4,6 +4,7 @@ namespace App\Queries;
 
 use App\Models\Build as BuildModel;
 use GraphQL\Type\Definition\ResolveInfo;
+use Nuwave\Lighthouse\Execution\Utils\GlobalId;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -21,7 +22,8 @@ class Build
      */
     public function resolve($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
-        $build = BuildModel::where('hash', $args['hash'])->firstOrFail();
+        $id = GlobalId::decodeID($args['id']);
+        $build = BuildModel::findOrFail($id);
 
         if (auth()->user()->can('view', $build)) {
             return $build;

@@ -5,6 +5,7 @@ namespace Tests\Feature\Queries;
 use App\Models\Build;
 use App\Models\Project;
 use Illuminate\Foundation\Testing\TestResponse;
+use Nuwave\Lighthouse\Execution\Utils\GlobalId;
 use Tests\PassportTestCase;
 
 class ProjectQueriesTest extends PassportTestCase
@@ -176,9 +177,8 @@ class ProjectQueriesTest extends PassportTestCase
             ->map(
                 function ($build) {
                     return [
-                        'id' => (string) $build->id,
+                        'id' => GlobalId::encode('Build', $build->id),
                         'commit' => $build->commit,
-                        'hash' => $build->hash,
                     ];
                 }
             )
@@ -198,7 +198,6 @@ class ProjectQueriesTest extends PassportTestCase
                         projectBuilds(project_id: \"{$project->id}\") {
                             id
                             commit
-                            hash
                         }
                     }",
                 ]

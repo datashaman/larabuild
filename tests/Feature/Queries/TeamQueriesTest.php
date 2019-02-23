@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\TestResponse;
+use Nuwave\Lighthouse\Execution\Utils\GlobalId;
 use Tests\PassportTestCase;
 
 class TeamQueriesTest extends PassportTestCase
@@ -206,7 +207,7 @@ class TeamQueriesTest extends PassportTestCase
             ->map(
                 function ($user) {
                     return [
-                        'id' => (string) $user->id,
+                        'id' => GlobalId::encode('User', $user->id),
                         'name' => $user->name,
                         'email' => $user->email,
                     ];
