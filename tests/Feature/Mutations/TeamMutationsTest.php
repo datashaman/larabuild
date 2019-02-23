@@ -2,76 +2,215 @@
 
 namespace Tests\Feature\Mutations;
 
+use App\Models\Team;
 use Tests\PassportTestCase;
 
 class TeamMutationsTest extends PassportTestCase
 {
-    public function postCreateTeam(string $name)
+    public function postCreateTeam(array $team)
     {
         return $this
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
-                        mutation createTeam(\$input: CreateTeamInput!) {
-                            createTeam(input: \$input) {
+                        mutation createTeam(\$team: TeamInput!) {
+                            createTeam(team: \$team) {
                                 id
                                 name
                             }
                         }
                     ",
-                    'variables' => [
-                        'input' => [
-                            'name' => $name,
-                        ],
-                    ],
+                    'variables' => compact('team'),
                 ]
             );
     }
 
     public function testCreateTeam()
     {
-        $name = $this->faker->words(3, true);
+        $team = [
+            'name' => $this->faker->words(3, true),
+        ];
 
         $this
-            ->postCreateTeam($name)
+            ->postCreateTeam($team)
             ->assertOk()
             ->assertJsonFragment(
                 [
-                    'message' => 'Not authorized to access this field.',
+                    'message' => 'You are not authorized to access createTeam',
                 ]
             );
 
-        $this
-            ->assertDatabaseMissing(
-                'teams',
-                [
-                    'name' => $name,
-                ]
-            );
+        $this->assertDatabaseMissing('teams', $team);
     }
 
     public function testCreateTeamAsAdmin()
     {
         $this->user->addRole('admin');
 
-        $name = $this->faker->words(3, true);
+        $team = [
+            'name' => $this->faker->words(3, true),
+        ];
+
 
         $this
-            ->postCreateTeam($name)
+            ->postCreateTeam($team)
             ->assertOk()
-            ->assertJsonFragment(
-                [
-                    'name' => $name,
-                ]
-            );
+            ->assertJsonFragment($team);
 
-        $this
-            ->assertDatabaseHas(
-                'teams',
+        $this->assertDatabaseHas('teams', $team);
+    }
+
+    public function postUpdateTeam(int $id, array $team)
+    {
+        return $this
+            ->postJson(
+                '/graphql',
                 [
-                    'name' => $name,
+                    'query' => "
+                        mutation updateTeam(\$id: ID!, \$team: TeamInput!) {
+                            updateTeam(id: \$id, team: \$team) {
+                                id
+                                name
+                            }
+                        }
+                    ",
+                    'variables' => compact('id', 'team'),
                 ]
             );
     }
+
+    public function testUpdateTeam()
+    {
+        $existingTeam = factory(Team::class)->create();
+
+        $team = [
+            'name' => $this->faker->words(3, true),
+        ];
+
+        $this
+            ->postUpdateTeam($existingTeam->id, $team)
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'You are not authorized to access updateTeam',
+                ]
+            );
+
+        $this->assertDatabaseMissing('teams', $team);
+    }
+
+    public function testUpdateTeamAsAdmin()
+    {
+        $this->user->addRole('admin');
+
+        $existingTeam = factory(Team::class)->create();
+
+        $team = [
+            'name' => $this->faker->words(3, true),
+        ];
+
+        $this
+            ->postUpdateTeam($existingTeam->id, $team)
+            ->assertOk()
+            ->assertJsonFragment($team);
+
+        $this->assertDatabaseHas('teams', $team);
+    }
+
+    public function testUpdateTeamAsTeamAdminInTeam()
+    {
+        $this->user->addRole('team-admin');
+
+        $existingTeam = factory(Team::class)->create();
+        $this->user->teams()->attach($existingTeam);
+
+        $team = [
+            'name' => $this->faker->words(3, true),
+        ];
+
+        $this
+            ->postUpdateTeam($existingTeam->id, $team)
+            ->assertOk()
+            ->assertJsonFragment($team);
+
+        $this->assertDatabaseHas('teams', $team);
+    }
+
+    public function testUpdateTeamAsTeamAdminNotInTeam()
+    {
+        $this->user->addRole('team-admin');
+
+        $existingTeam = factory(Team::class)->create();
+
+        $team = [
+            'name' => $this->faker->words(3, true),
+        ];
+
+        $this
+            ->postUpdateTeam($existingTeam->id, $team)
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'You are not authorized to access updateTeam',
+                ]
+            );
+
+        $this->assertDatabaseMissing('teams', $team);
+    }
+
+    public function postDeleteTeam(int $id)
+    {
+        return $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "
+                        mutation deleteTeam(\$id: ID!) {
+                            deleteTeam(id: \$id) {
+                                id
+                                name
+                            }
+                        }
+                    ",
+                    'variables' => compact('id'),
+                ]
+            );
+    }
+
+    public function testDeleteTeam()
+    {
+        $existingTeam = factory(Team::class)->create();
+
+        $this
+            ->postDeleteTeam($existingTeam->id)
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'You are not authorized to access deleteTeam',
+                ]
+            );
+
+        $this->assertDatabaseHas('teams', $existingTeam->only(['id', 'name']));
+    }
+
+    public function testDeleteTeamAsAdmin()
+    {
+        $this->user->addRole('admin');
+
+        $existingTeam = factory(Team::class)->create();
+
+        $team = [
+            'id' => (string) $existingTeam->id,
+            'name' => $existingTeam->name,
+        ];
+
+        $this
+            ->postDeleteTeam($existingTeam->id)
+            ->assertOk()
+            ->assertJsonFragment($team);
+
+        $this->assertDatabaseMissing('teams', $team);
+    }
+
 }
