@@ -15,4 +15,11 @@ class Project extends Model
     {
         return $this->hasMany(Build::class);
     }
+
+    public function getLatestBuildAttribute()
+    {
+        return $this->builds()
+            ->latest()
+            ->first();
+    }
 }
