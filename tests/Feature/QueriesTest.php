@@ -19,19 +19,14 @@ class QueriesTest extends TestCase
     {
         parent::setUp();
 
-        $this->team = factory(Team::class)->create();
-        $this->user = factory(User::class)->create();
-        $this->team->users()->attach($this->user);
-
-        $this->project = factory(Project::class)->create(['team_id' => $this->team->id]);
-
-        Passport::actingAs($this->user);
+        $user = factory(User::class)->create();
+        Passport::actingAs($user);
     }
 
     public function testBuilds()
     {
         $builds = factory(Build::class, 12)
-            ->create(['project_id' => $this->project->id])
+            ->create()
             ->take(10)
             ->map(
                 function ($build) {
@@ -104,6 +99,59 @@ class QueriesTest extends TestCase
                             hash
                         }
                     }",
+                ]
+            )
+            ->assertStatus(200)
+            ->assertExactJson($expected);
+    }
+
+    public function testProjects()
+    {
+        $projects = factory(Project::class, 12)
+            ->create()
+            ->take(10)
+            ->map(
+                function ($project) {
+                    return [
+                        'id' => (string) $project->id,
+                        'name' => $project->name,
+                    ];
+                }
+            )
+            ->all();
+
+        $expected = [
+            'data' => [
+                'projects' => [
+                    'data' => $projects,
+                    'paginatorInfo' => [
+                        'count' => 10,
+                        'currentPage' => 1,
+                        'lastPage' => 2,
+                        'total' => 12,
+                    ],
+                ],
+            ],
+        ];
+
+        $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => '{
+                        projects(count: 10) {
+                            paginatorInfo {
+                                count
+                                currentPage
+                                lastPage
+                                total
+                            }
+                            data {
+                                id
+                                name
+                            }
+                        }
+                    }',
                 ]
             )
             ->assertStatus(200)
