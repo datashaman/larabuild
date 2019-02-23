@@ -40,17 +40,23 @@ type Build {
     status: String!
     commit: String!
     completed_at: DateTime
+    created_at: DateTime!
 }
 
 type Project {
     id: ID!
     team: Team!
     name: String!
+    repository: String!
+    created_at: DateTime!
+    updated_at: DateTime
 }
 
 type Team {
     id: ID!
     name: String!
+    created_at: DateTime!
+    updated_at: DateTime
 
     users: [User!]
     projects: [Project!]
@@ -61,5 +67,5 @@ type User {
     name: String!
     email: String!
     created_at: DateTime!
-    updated_at: DateTime!
+    updated_at: DateTime
 }

@@ -13,17 +13,28 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Laravel\Passport\Passport;
 
+
 class QueriesTest extends TestCase
 {
+    /**
+     * @var User
+     */
+    protected $user;
+
     public function setUp()
     {
         parent::setUp();
 
-        $user = factory(User::class)->create();
-        Passport::actingAs($user);
+        $this->user = factory(User::class)->create();
+        Passport::actingAs($this->user);
     }
 
-    public function testBuilds()
+    protected function formatDateTime($value)
+    {
+        return $value->toAtomString();
+    }
+
+    public function testBuildsQuery()
     {
         $builds = factory(Build::class, 12)
             ->create()
@@ -33,6 +44,13 @@ class QueriesTest extends TestCase
                     return [
                         'id' => (string) $build->id,
                         'hash' => $build->hash,
+                        'project' => [
+                            'id' => (string) $build->project->id,
+                            'name' => $build->project->name,
+                        ],
+                        'status' => $build->status,
+                        'commit' => $build->commit,
+                        'completed_at' => $build->completed_at,
                     ];
                 }
             )
@@ -67,6 +85,13 @@ class QueriesTest extends TestCase
                             data {
                                 id
                                 hash
+                                project {
+                                    id
+                                    name
+                                }
+                                status
+                                commit
+                                completed_at
                             }
                         }
                     }',
@@ -76,7 +101,7 @@ class QueriesTest extends TestCase
             ->assertExactJson($expected);
     }
 
-    public function testBuild()
+    public function testBuildQuery()
     {
         $build = factory(Build::class)->create();
 
@@ -85,6 +110,13 @@ class QueriesTest extends TestCase
                 'build' => [
                     'id' => (string) $build->id,
                     'hash' => $build->hash,
+                    'project' => [
+                        'id' => (string) $build->project->id,
+                        'name' => $build->project->name,
+                    ],
+                    'status' => $build->status,
+                    'commit' => $build->commit,
+                    'completed_at' => $build->completed_at,
                 ],
             ],
         ];
@@ -97,6 +129,13 @@ class QueriesTest extends TestCase
                         build(id: {$build->id}) {
                             id
                             hash
+                            project {
+                                id
+                                name
+                            }
+                            status
+                            commit
+                            completed_at
                         }
                     }",
                 ]
@@ -105,7 +144,7 @@ class QueriesTest extends TestCase
             ->assertExactJson($expected);
     }
 
-    public function testProjects()
+    public function testProjectsQuery()
     {
         $projects = factory(Project::class, 12)
             ->create()
@@ -114,7 +153,16 @@ class QueriesTest extends TestCase
                 function ($project) {
                     return [
                         'id' => (string) $project->id,
+                        'team' => [
+                            'id' => (string) $project->team->id,
+                            'name' => $project->team->name,
+                            'created_at' => $this->formatDateTime($project->team->created_at),
+                            'updated_at' => $this->formatDateTime($project->team->updated_at),
+                        ],
                         'name' => $project->name,
+                        'repository' => $project->repository,
+                        'created_at' => $this->formatDateTime($project->created_at),
+                        'updated_at' => $this->formatDateTime($project->updated_at),
                     ];
                 }
             )
@@ -148,7 +196,16 @@ class QueriesTest extends TestCase
                             }
                             data {
                                 id
+                                team {
+                                    id
+                                    name
+                                    created_at
+                                    updated_at
+                                }
                                 name
+                                repository
+                                created_at
+                                updated_at
                             }
                         }
                     }',
@@ -158,7 +215,7 @@ class QueriesTest extends TestCase
             ->assertExactJson($expected);
     }
 
-    public function testProject()
+    public function testProjectQuery()
     {
         $project = factory(Project::class)->create();
 
@@ -187,7 +244,7 @@ class QueriesTest extends TestCase
             ->assertExactJson($expected);
     }
 
-    public function testTeams()
+    public function testTeamsQuery()
     {
         $teams = factory(Team::class, 12)
             ->create()
@@ -240,7 +297,7 @@ class QueriesTest extends TestCase
             ->assertExactJson($expected);
     }
 
-    public function testTeam()
+    public function testTeamQuery()
     {
         $team = factory(Team::class)->create();
 
@@ -269,7 +326,7 @@ class QueriesTest extends TestCase
             ->assertExactJson($expected);
     }
 
-    public function testUsers()
+    public function testUsersQuery()
     {
         factory(User::class, 11)->create();
 
@@ -324,7 +381,7 @@ class QueriesTest extends TestCase
             ->assertExactJson($expected);
     }
 
-    public function testUser()
+    public function testUserQuery()
     {
         $user = factory(User::class)->create();
 
