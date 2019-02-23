@@ -80,4 +80,33 @@ class QueriesTest extends TestCase
             ->assertStatus(200)
             ->assertExactJson($expected);
     }
+
+    public function testBuild()
+    {
+        $build = factory(Build::class)->create();
+
+        $expected = [
+            'data' => [
+                'build' => [
+                    'id' => (string) $build->id,
+                    'hash' => $build->hash,
+                ],
+            ],
+        ];
+
+        $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "{
+                        build(id: {$build['id']}) {
+                            id
+                            hash
+                        }
+                    }",
+                ]
+            )
+            ->assertStatus(200)
+            ->assertExactJson($expected);
+    }
 }
