@@ -1,0 +1,65 @@
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
+
+type Query {
+    builds: [Build!]! @paginate(type: "paginator")
+    build(id: ID @eq): Build @find
+
+    projects: [Project!]! @paginate(type: "paginator")
+    project(id: ID @eq): Project @find
+
+    teams: [Team!]! @paginate(type: "paginator")
+    team(id: ID @eq): Team @find
+
+    users: [User!]! @paginate(type: "paginator")
+    user(id: ID @eq): User @find
+}
+
+type Mutation {
+    createUser(
+        name: String! @rules(apply: ["required"])
+        email: String! @rules(apply: ["required", "email", "unique:users,email"])
+        password: String! @rules(apply: ["required", "min:6"]) @bcrypt
+    ): User @create
+    updateUser(
+        id: ID! @rules(apply: ["required"])
+        name: String!
+        email: String! @rules(apply: ["email"])
+        password: String! @rules(apply: ["required", "min:6"]) @bcrypt
+    ): User @update
+    deleteUser(
+        id: ID! @rules(apply: ["required"])
+    ): User @delete
+}
+
+type Build {
+    id: ID!
+    hash: String!
+    project: Project!
+    user: User!
+    status: String!
+    commit: String!
+    completed_at: DateTime
+}
+
+type Project {
+    id: ID!
+    team: Team!
+    name: String!
+}
+
+type Team {
+    id: ID!
+    name: String!
+
+    users: [User!]
+    projects: [Project!]
+}
+
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    created_at: DateTime!
+    updated_at: DateTime!
+}
