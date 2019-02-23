@@ -94,7 +94,7 @@ class QueriesTest extends TestCase
                 '/graphql',
                 [
                     'query' => "{
-                        build(id: {$build['id']}) {
+                        build(id: {$build->id}) {
                             id
                             hash
                         }
@@ -157,4 +157,34 @@ class QueriesTest extends TestCase
             ->assertStatus(200)
             ->assertExactJson($expected);
     }
+
+    public function testProject()
+    {
+        $project = factory(Project::class)->create();
+
+        $expected = [
+            'data' => [
+                'project' => [
+                    'id' => (string) $project->id,
+                    'name' => $project->name,
+                ],
+            ],
+        ];
+
+        $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "{
+                        project(id: {$project->id}) {
+                            id
+                            name
+                        }
+                    }",
+                ]
+            )
+            ->assertStatus(200)
+            ->assertExactJson($expected);
+    }
+
 }
