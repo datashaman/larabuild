@@ -3,16 +3,16 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
 type Query @middleware(checks: ["auth:api"]) {
     builds: [Build!]! @paginate(type: "paginator")
-    build(id: ID @eq): Build @find
+    build(hash: String! @eq): Build @find
 
     projects: [Project!]! @paginate(type: "paginator")
-    project(id: ID @eq): Project @find
+    project(id: ID! @eq): Project @find
 
     teams: [Team!]! @paginate(type: "paginator")
-    team(id: ID @eq): Team @find
+    team(id: ID! @eq): Team @find
 
     users: [User!]! @paginate(type: "paginator")
-    user(id: ID @eq): User @find
+    user(id: ID! @eq): User @find
 }
 
 type Mutation @middleware(checks: ["auth:api"]) {

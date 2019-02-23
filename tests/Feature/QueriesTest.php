@@ -47,6 +47,7 @@ class QueriesTest extends TestCase
                         'project' => [
                             'id' => (string) $build->project->id,
                             'name' => $build->project->name,
+                            'repository' => $build->project->repository,
                         ],
                         'status' => $build->status,
                         'commit' => $build->commit,
@@ -88,6 +89,7 @@ class QueriesTest extends TestCase
                                 project {
                                     id
                                     name
+                                    repository
                                 }
                                 status
                                 commit
@@ -126,7 +128,7 @@ class QueriesTest extends TestCase
                 '/graphql',
                 [
                     'query' => "{
-                        build(id: {$build->id}) {
+                        build(hash: \"{$build->hash}\") {
                             id
                             hash
                             project {
