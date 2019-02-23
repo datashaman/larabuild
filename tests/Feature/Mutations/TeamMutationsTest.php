@@ -13,15 +13,17 @@ class TeamMutationsTest extends PassportTestCase
                 '/graphql',
                 [
                     'query' => "
-                        mutation createTeam(\$name: String!) {
-                            createTeam(name: \$name) {
+                        mutation createTeam(\$input: CreateTeamInput!) {
+                            createTeam(input: \$input) {
                                 id
                                 name
                             }
                         }
                     ",
                     'variables' => [
-                        'name' => $name,
+                        'input' => [
+                            'name' => $name,
+                        ],
                     ],
                 ]
             );

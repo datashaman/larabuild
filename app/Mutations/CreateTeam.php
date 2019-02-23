@@ -20,6 +20,6 @@ class CreateTeam
      */
     public function resolve($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
-        return Team::create($args);
+        return Team::create($args['input']);
     }
 }
