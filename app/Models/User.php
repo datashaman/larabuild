@@ -39,4 +39,47 @@ class User extends Authenticatable
     {
         return $this->hasMany(Build::class);
     }
+
+    public function userRoles()
+    {
+        return $this->hasMany(UserRole::class);
+    }
+
+    /**
+     * @return string|array $role
+     *
+     * @return bool
+     */
+    public function hasRole($roles)
+    {
+        if (is_string($roles)) {
+            $roles = [$roles];
+        }
+
+        return $this
+            ->userRoles()
+            ->whereIn('role', $roles)
+            ->exists();
+    }
+
+    /**
+     * @param string $role
+     */
+    public function addRole(string $role)
+    {
+        if (in_array($role, config('larabuild.roles'))) {
+            $this->userRoles()->create(['role' => $role]);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getRolesAttribute()
+    {
+        return $this
+            ->userRoles()
+            ->pluck('role')
+            ->all();
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Queries;
 
 use App\Models\Team;
 use App\Models\User;
@@ -8,8 +8,45 @@ use Tests\PassportTestCase;
 
 class UserQueriesTest extends PassportTestCase
 {
+    protected function postUsersQuery()
+    {
+        return $this->postJson(
+            '/graphql',
+            [
+                'query' => '{
+                    users(count: 10) {
+                        paginatorInfo {
+                            count
+                            currentPage
+                            lastPage
+                            total
+                        }
+                        data {
+                            id
+                            name
+                        }
+                    }
+                }',
+            ]
+        );
+    }
+
     public function testUsersQuery()
     {
+        $this
+            ->postUsersQuery()
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'Not authorized to access this field.',
+                ]
+            );
+    }
+
+    public function testUsersQueryAsAdmin()
+    {
+        $this->user->addRole('admin');
+
         factory(User::class, 11)->create();
 
         $users = User::query()
@@ -40,26 +77,8 @@ class UserQueriesTest extends PassportTestCase
         ];
 
         $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => '{
-                        users(count: 10) {
-                            paginatorInfo {
-                                count
-                                currentPage
-                                lastPage
-                                total
-                            }
-                            data {
-                                id
-                                name
-                            }
-                        }
-                    }',
-                ]
-            )
-            ->assertStatus(200)
+            ->postUsersQuery()
+            ->assertOk()
             ->assertExactJson($expected);
     }
 

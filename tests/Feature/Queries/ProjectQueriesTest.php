@@ -1,15 +1,66 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Queries;
 
 use App\Models\Build;
 use App\Models\Project;
+use Illuminate\Foundation\Testing\TestResponse;
 use Tests\PassportTestCase;
 
 class ProjectQueriesTest extends PassportTestCase
 {
+    /**
+     * @return TestResponse
+     */
+    protected function postProjectsQuery()
+    {
+        return $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => '{
+                        projects(count: 10) {
+                            paginatorInfo {
+                                count
+                                currentPage
+                                lastPage
+                                total
+                            }
+                            data {
+                                id
+                                team {
+                                    id
+                                    name
+                                    created_at
+                                    updated_at
+                                }
+                                name
+                                repository
+                                created_at
+                                updated_at
+                            }
+                        }
+                    }',
+                ]
+            );
+    }
+
     public function testProjectsQuery()
     {
+        $this
+            ->postProjectsQuery()
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'Not authorized to access this field.',
+                ]
+            );
+    }
+
+    public function testProjectsQueryAsAdmin()
+    {
+        $this->user->addRole('admin');
+
         $projects = factory(Project::class, 12)
             ->create()
             ->take(10)
@@ -47,35 +98,8 @@ class ProjectQueriesTest extends PassportTestCase
         ];
 
         $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => '{
-                        projects(count: 10) {
-                            paginatorInfo {
-                                count
-                                currentPage
-                                lastPage
-                                total
-                            }
-                            data {
-                                id
-                                team {
-                                    id
-                                    name
-                                    created_at
-                                    updated_at
-                                }
-                                name
-                                repository
-                                created_at
-                                updated_at
-                            }
-                        }
-                    }',
-                ]
-            )
-            ->assertStatus(200)
+            ->postProjectsQuery()
+            ->assertOk()
             ->assertExactJson($expected);
     }
 
