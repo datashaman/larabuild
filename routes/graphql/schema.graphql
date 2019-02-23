@@ -23,17 +23,23 @@ type Query @middleware(checks: ["auth:api"]) {
 }
 
 type Mutation @middleware(checks: ["auth:api"]) {
+    createTeam(
+        name: String! @rules(apply: ["required"])
+    ): Team @can(if: "create", model: "App\\Models\\Team")
+
     createUser(
         name: String! @rules(apply: ["required"])
         email: String! @rules(apply: ["required", "email", "unique:users,email"])
         password: String! @rules(apply: ["required", "min:6"]) @bcrypt
     ): User @create @can(if: "create", model: "App\\Models\\User")
+
     updateUser(
         id: ID! @rules(apply: ["required"])
         name: String!
         email: String! @rules(apply: ["email"])
         password: String! @rules(apply: ["required", "min:6"]) @bcrypt
     ): User @update
+
     deleteUser(
         id: ID! @rules(apply: ["required"])
     ): User @delete
