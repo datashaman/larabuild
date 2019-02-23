@@ -2,23 +2,23 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
 type Query @middleware(checks: ["auth:api"]) {
-    builds: [Build!]! @paginate(type: "paginator")
+    builds: [Build!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Build")
     build(hash: String! @eq): Build @find
 
     me: User @auth
     myTeams: [Team!]!
 
     project(id: ID! @eq): Project @find
-    projects: [Project!]! @paginate(type: "paginator")
+    projects: [Project!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Project")
     projectBuilds(project_id: ID!): [Build!]
 
     team(id: ID! @eq): Team @find
-    teams: [Team!]! @paginate(type: "paginator")
+    teams: [Team!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Team")
     teamProjects(team_id: ID! @eq): [Project!] @all
     teamUsers(team_id: ID!): [User!]
 
     user(id: ID! @eq): User @find
-    users: [User!]! @paginate(type: "paginator")
+    users: [User!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\User")
     userTeams(user_id: ID!): [Team!]
 }
 
@@ -27,7 +27,7 @@ type Mutation @middleware(checks: ["auth:api"]) {
         name: String! @rules(apply: ["required"])
         email: String! @rules(apply: ["required", "email", "unique:users,email"])
         password: String! @rules(apply: ["required", "min:6"]) @bcrypt
-    ): User @create
+    ): User @create @can(if: "create", model: "App\\Models\\User")
     updateUser(
         id: ID! @rules(apply: ["required"])
         name: String!

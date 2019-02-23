@@ -1,18 +1,58 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Queries;
 
 use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Foundation\Testing\TestResponse;
 use Tests\PassportTestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class TeamQueriesTest extends PassportTestCase
 {
+    /**
+     * @return TestResponse
+     */
+    protected function postTeamsQuery()
+    {
+        return $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => '{
+                        teams(count: 10) {
+                            paginatorInfo {
+                                count
+                                currentPage
+                                lastPage
+                                total
+                            }
+                            data {
+                                id
+                                name
+                            }
+                        }
+                    }',
+                ]
+            );
+    }
+
     public function testTeamsQuery()
     {
+        $this
+            ->postTeamsQuery()
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'Not authorized to access this field.',
+                ]
+            );
+    }
+
+    public function testTeamsQueryAsAdmin()
+    {
+        $this->user->addRole('admin');
+
         $teams = factory(Team::class, 12)
             ->create()
             ->take(10)
@@ -41,26 +81,8 @@ class TeamQueriesTest extends PassportTestCase
         ];
 
         $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => '{
-                        teams(count: 10) {
-                            paginatorInfo {
-                                count
-                                currentPage
-                                lastPage
-                                total
-                            }
-                            data {
-                                id
-                                name
-                            }
-                        }
-                    }',
-                ]
-            )
-            ->assertStatus(200)
+            ->postTeamsQuery()
+            ->assertOk()
             ->assertExactJson($expected);
     }
 

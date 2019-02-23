@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Queries;
 
 use App\Models\Build;
 use App\Models\Project;

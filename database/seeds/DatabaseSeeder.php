@@ -11,18 +11,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $teamId = DB::table('teams')->insertGetId(
-            [
-                'name' => 'Sample Team',
-            ]
-        );
-
-        DB::table('projects')->insertGetId(
-            [
-                'team_id' => $teamId,
-                'name' => 'Sample Project',
-                'repository' => 'https://github.com/datashaman/larabuild-test',
-            ]
-        );
+        //
     }
 }
