@@ -268,4 +268,90 @@ class QueriesTest extends TestCase
             ->assertStatus(200)
             ->assertExactJson($expected);
     }
+
+    public function testUsers()
+    {
+        factory(User::class, 11)->create();
+
+        $users = User::query()
+            ->take(10)
+            ->get()
+            ->map(
+                function ($user) {
+                    return [
+                        'id' => (string) $user->id,
+                        'name' => $user->name,
+                    ];
+                }
+            )
+            ->all();
+
+        $expected = [
+            'data' => [
+                'users' => [
+                    'data' => $users,
+                    'paginatorInfo' => [
+                        'count' => 10,
+                        'currentPage' => 1,
+                        'lastPage' => 2,
+                        'total' => 12,
+                    ],
+                ],
+            ],
+        ];
+
+        $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => '{
+                        users(count: 10) {
+                            paginatorInfo {
+                                count
+                                currentPage
+                                lastPage
+                                total
+                            }
+                            data {
+                                id
+                                name
+                            }
+                        }
+                    }',
+                ]
+            )
+            ->assertStatus(200)
+            ->assertExactJson($expected);
+    }
+
+    public function testUser()
+    {
+        $user = factory(User::class)->create();
+
+        $expected = [
+            'data' => [
+                'user' => [
+                    'id' => (string) $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ],
+            ],
+        ];
+
+        $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "{
+                        user(id: {$user->id}) {
+                            id
+                            name
+                            email
+                        }
+                    }",
+                ]
+            )
+            ->assertStatus(200)
+            ->assertExactJson($expected);
+    }
 }
