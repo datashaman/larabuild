@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Queries;
+namespace App\Mutations;
 
-use App\Models\Team as TeamModel;
+use App\Models\Team;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
-class Team
+class DeleteTeam
 {
     /**
      * Return a value for the field.
@@ -21,12 +21,13 @@ class Team
      */
     public function resolve($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
-        $team = TeamModel::findOrFail($args['id']);
+        $team = Team::findOrFail($args['id']);
 
-        if (auth()->user()->can('view', $team)) {
+        if (auth()->user()->can('delete', $team)) {
+            $team->delete();
             return $team;
         }
 
-        throw new AuthorizationException('You are not authorized to access team');
+        throw new AuthorizationException('You are not authorized to access deleteTeam');
     }
 }

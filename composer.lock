@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d515670c2a38f81fb2fb308c61c5ac00",
+    "content-hash": "0b778342511507f008996186a0299c94",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -1697,16 +1697,16 @@
         },
         {
             "name": "nuwave/lighthouse",
-            "version": "v2.6.4",
+            "version": "dev-patch-1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/nuwave/lighthouse.git",
-                "reference": "3834007cd3b4a7ea932f6c5363ab49f12d11e245"
+                "url": "https://github.com/datashaman/lighthouse.git",
+                "reference": "c7e60790866024a1a2f534383c0e1fb177f4df25"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nuwave/lighthouse/zipball/3834007cd3b4a7ea932f6c5363ab49f12d11e245",
-                "reference": "3834007cd3b4a7ea932f6c5363ab49f12d11e245",
+                "url": "https://api.github.com/repos/datashaman/lighthouse/zipball/c7e60790866024a1a2f534383c0e1fb177f4df25",
+                "reference": "c7e60790866024a1a2f534383c0e1fb177f4df25",
                 "shasum": ""
             },
             "require": {
@@ -1718,15 +1718,15 @@
                 "illuminate/support": "5.5.*|5.6.*|5.7.*",
                 "illuminate/validation": "5.5.*|5.6.*|5.7.*",
                 "opis/closure": "^3.0",
-                "php": ">= 7.0",
-                "webonyx/graphql-php": "^0.12"
+                "php": ">= 7.1",
+                "webonyx/graphql-php": "^0.13"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^2.10",
                 "laravel/scout": "^4.0",
                 "mockery/mockery": "dev-master",
                 "orchestra/database": "3.5.*|3.6.*|3.7.*@dev",
-                "orchestra/testbench": "3.5.*|3.6.*|3.7.*"
+                "orchestra/testbench": "3.5.*|3.6.*|3.7.*",
+                "pusher/pusher-php-server": "^3.2"
             },
             "suggest": {
                 "mll-lab/laravel-graphql-playground": "GraphQL IDE for better development workflows - integrated with Laravel"
@@ -1750,7 +1750,22 @@
                     "src/Support/helpers.php"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit --colors=always"
+                ],
+                "test:unit": [
+                    "phpunit --colors=always --testsuite Unit"
+                ],
+                "test:integration": [
+                    "phpunit --colors=always --testsuite Integration"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1767,7 +1782,11 @@
                 "laravel",
                 "laravel-graphql"
             ],
-            "time": "2019-01-22T07:07:54+00:00"
+            "support": {
+                "issues": "https://github.com/nuwave/lighthouse/issues",
+                "source": "https://github.com/nuwave/lighthouse"
+            },
+            "time": "2019-02-23T22:29:39+00:00"
         },
         {
             "name": "opis/closure",
@@ -3695,24 +3714,30 @@
         },
         {
             "name": "webonyx/graphql-php",
-            "version": "v0.12.6",
+            "version": "v0.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webonyx/graphql-php.git",
-                "reference": "4c545e5ec4fc37f6eb36c19f5a0e7feaf5979c95"
+                "reference": "9bb8e7327748fdc828f801001161e6b586ca96e5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webonyx/graphql-php/zipball/4c545e5ec4fc37f6eb36c19f5a0e7feaf5979c95",
-                "reference": "4c545e5ec4fc37f6eb36c19f5a0e7feaf5979c95",
+                "url": "https://api.github.com/repos/webonyx/graphql-php/zipball/9bb8e7327748fdc828f801001161e6b586ca96e5",
+                "reference": "9bb8e7327748fdc828f801001161e6b586ca96e5",
                 "shasum": ""
             },
             "require": {
+                "ext-json": "*",
                 "ext-mbstring": "*",
-                "php": ">=5.6"
+                "php": "^7.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.8",
+                "doctrine/coding-standard": "^5.0",
+                "phpbench/phpbench": "^0.14.0",
+                "phpstan/phpstan": "0.10.5",
+                "phpstan/phpstan-phpunit": "0.10.0",
+                "phpstan/phpstan-strict-rules": "0.10.1",
+                "phpunit/phpunit": "^7.2",
                 "psr/http-message": "^1.0",
                 "react/promise": "2.*"
             },
@@ -3736,7 +3761,7 @@
                 "api",
                 "graphql"
             ],
-            "time": "2018-09-02T14:59:54+00:00"
+            "time": "2018-11-27T10:23:58+00:00"
         },
         {
             "name": "zendframework/zend-diactoros",
@@ -5568,7 +5593,9 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {
+        "nuwave/lighthouse": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

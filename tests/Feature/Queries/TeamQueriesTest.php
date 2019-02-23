@@ -45,7 +45,7 @@ class TeamQueriesTest extends PassportTestCase
             ->assertOk()
             ->assertJsonFragment(
                 [
-                    'message' => 'Not authorized to access this field.',
+                    'message' => 'You are not authorized to access teams',
                 ]
             );
     }
@@ -121,7 +121,7 @@ class TeamQueriesTest extends PassportTestCase
             ->assertStatus(200)
             ->assertJsonFragment(
                 [
-                    'message' => 'Not authorized to access this field.',
+                    'message' => 'You are not authorized to access team',
                 ]
             );
     }

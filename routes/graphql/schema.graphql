@@ -24,20 +24,25 @@ type Query @middleware(checks: ["auth:api"]) {
 
 type Mutation @middleware(checks: ["auth:api"]) {
     createTeam(
-        input: CreateTeamInput!
+        team: TeamInput!
     ): Team @can(if: "create", model: "App\\Models\\Team")
 
+    updateTeam(
+        id: ID! @rules(apply: ["required"])
+        team: TeamInput!
+    ): Team
+
+    deleteTeam(
+        id: ID! @rules(apply: ["required"])
+    ): Team
+
     createUser(
-        name: String! @rules(apply: ["required"])
-        email: String! @rules(apply: ["required", "email", "unique:users,email"])
-        password: String! @rules(apply: ["required", "min:6"]) @bcrypt
-    ): User @create @can(if: "create", model: "App\\Models\\User")
+        user: UserInput!
+    ): User @create(flatten: true) @can(if: "create", model: "App\\Models\\User")
 
     updateUser(
         id: ID! @rules(apply: ["required"])
-        name: String!
-        email: String! @rules(apply: ["email"])
-        password: String! @rules(apply: ["required", "min:6"]) @bcrypt
+        user: UserInput!
     ): User @update
 
     deleteUser(
@@ -84,6 +89,12 @@ type User @model {
     updated_at: DateTime
 }
 
-input CreateTeamInput {
+input TeamInput {
     name: String! @rules(apply: ["required"])
+}
+
+input UserInput {
+    name: String! @rules(apply: ["required"])
+    email: String! @rules(apply: ["required", "email"])
+    password: String! @rules(apply: ["required", "min:6"]) @bcrypt
 }

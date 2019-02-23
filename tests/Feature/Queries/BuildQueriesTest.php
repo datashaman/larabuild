@@ -55,7 +55,7 @@ class BuildQueriesTest extends PassportTestCase
             ->assertOk()
             ->assertJsonFragment(
                 [
-                    'message' => 'Not authorized to access this field.',
+                    'message' => 'You are not authorized to access builds',
                 ]
             );
     }
