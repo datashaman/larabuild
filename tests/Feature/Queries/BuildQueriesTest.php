@@ -9,6 +9,7 @@ use App\Models\User;
 use DB;
 use Illuminate\Foundation\Testing\TestResponse;
 use Illuminate\Support\Carbon;
+use Nuwave\Lighthouse\Execution\Utils\GlobalId;
 use Tests\PassportTestCase;
 
 class BuildQueriesTest extends PassportTestCase
@@ -32,7 +33,6 @@ class BuildQueriesTest extends PassportTestCase
                             }
                             data {
                                 id
-                                hash
                                 project {
                                     id
                                     name
@@ -71,8 +71,7 @@ class BuildQueriesTest extends PassportTestCase
             ->map(
                 function ($build) {
                     return [
-                        'id' => (string) $build->id,
-                        'hash' => $build->hash,
+                        'id' => GlobalId::encode('Build', $build->id),
                         'project' => [
                             'id' => (string) $build->project->id,
                             'name' => $build->project->name,
@@ -108,20 +107,19 @@ class BuildQueriesTest extends PassportTestCase
     }
 
     /**
-     * @param string $hash
+     * @param string $id
      *
      * @return TestResponse
      */
-    protected function postBuildQuery(string $hash)
+    protected function postBuildQuery(string $id)
     {
         return $this
             ->postJson(
                 '/graphql',
                 [
                     'query' => "{
-                        build(hash: \"{$hash}\") {
+                        build(id: \"{$id}\") {
                             id
-                            hash
                             project {
                                 id
                                 name
@@ -138,9 +136,10 @@ class BuildQueriesTest extends PassportTestCase
     public function testBuildQueryAsOther()
     {
         $build = factory(Build::class)->create();
+        $globalId = GlobalId::encode('Build', $build->id);
 
         $this
-            ->postBuildQuery($build->hash)
+            ->postBuildQuery($globalId)
             ->assertStatus(200)
             ->assertJsonFragment(
                 [
@@ -151,13 +150,14 @@ class BuildQueriesTest extends PassportTestCase
     public function testBuildQuery()
     {
         $build = factory(Build::class)->create();
+        $globalId = GlobalId::encode('Build', $build->id);
+
         $this->user->teams()->attach($build->project->team);
 
         $expected = [
             'data' => [
                 'build' => [
-                    'id' => (string) $build->id,
-                    'hash' => $build->hash,
+                    'id' => $globalId,
                     'project' => [
                         'id' => (string) $build->project->id,
                         'name' => $build->project->name,
@@ -170,7 +170,7 @@ class BuildQueriesTest extends PassportTestCase
         ];
 
         $this
-            ->postBuildQuery($build->hash)
+            ->postBuildQuery($globalId)
             ->assertStatus(200)
             ->assertExactJson($expected);
     }

@@ -15,7 +15,6 @@ class CreateBuildsTable extends Migration
     {
         Schema::create('builds', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('hash');
             $table->integer('project_id')->unsigned();
             $table->string('status');
             $table->string('commit');
