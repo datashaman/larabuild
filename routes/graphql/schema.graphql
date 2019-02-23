@@ -1,7 +1,7 @@
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
-type Query {
+type Query @middleware(checks: ["auth:api"]) {
     builds: [Build!]! @paginate(type: "paginator")
     build(id: ID @eq): Build @find
 
@@ -15,7 +15,7 @@ type Query {
     user(id: ID @eq): User @find
 }
 
-type Mutation {
+type Mutation @middleware(checks: ["auth:api"]) {
     createUser(
         name: String! @rules(apply: ["required"])
         email: String! @rules(apply: ["required", "email", "unique:users,email"])
@@ -33,7 +33,7 @@ type Mutation {
 }
 
 type Build {
-    id: ID!
+    id: String!
     hash: String!
     project: Project!
     user: User!

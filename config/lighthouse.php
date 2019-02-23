@@ -141,6 +141,7 @@ return [
     */
     'error_handlers' => [
         \Nuwave\Lighthouse\Execution\ExtensionErrorHandler::class,
+        App\Lighthouse\ErrorHandler::class,
     ],
 
     /*
