@@ -11,7 +11,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Laravel\Passport\ClientRepository;
+use Laravel\Passport\Passport;
 
 class QueriesTest extends TestCase
 {
@@ -19,29 +19,13 @@ class QueriesTest extends TestCase
     {
         parent::setUp();
 
-        $clientRepository = app(ClientRepository::class);
-
-        $client = $clientRepository->createPersonalAccessClient(
-            null, 'Test Personal Access Client', ''
-        );
-
-        DB::table('oauth_personal_access_clients')->insert([
-            'client_id' => $client->id,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
-
         $this->team = factory(Team::class)->create();
         $this->user = factory(User::class)->create();
         $this->team->users()->attach($this->user);
 
         $this->project = factory(Project::class)->create(['team_id' => $this->team->id]);
 
-        $token = $this->user->createToken(uniqid())->accessToken;
-
-        $this->headers = [
-            'Authorization' => "Bearer $token",
-        ];
+        Passport::actingAs($this->user);
     }
 
     public function testBuilds()
@@ -64,7 +48,9 @@ class QueriesTest extends TestCase
                 'builds' => [
                     'data' => $builds,
                     'paginatorInfo' => [
+                        'count' => 10,
                         'currentPage' => 1,
+                        'lastPage' => 2,
                         'total' => 12,
                     ],
                 ],
@@ -78,7 +64,9 @@ class QueriesTest extends TestCase
                     'query' => '{
                         builds(count: 10) {
                             paginatorInfo {
+                                count
                                 currentPage
+                                lastPage
                                 total
                             }
                             data {
@@ -87,8 +75,7 @@ class QueriesTest extends TestCase
                             }
                         }
                     }',
-                ],
-                $this->headers
+                ]
             )
             ->assertStatus(200)
             ->assertExactJson($expected);
