@@ -2,11 +2,12 @@
 
 namespace App\Queries;
 
-use App\Models\Build;
+use App\Models\Build as BuildModel;
 use GraphQL\Type\Definition\ResolveInfo;
+use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
-class Builds
+class Build
 {
     /**
      * Return a value for the field.
@@ -20,8 +21,12 @@ class Builds
      */
     public function resolve($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
-        $page = array_get($args, 'page', 1);
+        $build = BuildModel::where('hash', $args['hash'])->firstOrFail();
 
-        return Build::query()->orderBy('id', 'desc');
+        if (auth()->user()->can('view', $build)) {
+            return $build;
+        }
+
+        throw new AuthorizationException('Not authorized to access this field.');
     }
 }

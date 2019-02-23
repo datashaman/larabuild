@@ -86,7 +86,23 @@ class TeamQueriesTest extends PassportTestCase
             ->assertExactJson($expected);
     }
 
-    public function testTeamQuery()
+    protected function postTeamQuery($id)
+    {
+        return $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "{
+                        team(id: {$id}) {
+                            id
+                            name
+                        }
+                    }",
+                ]
+            );
+    }
+
+    public function testTeamQueryAsOther()
     {
         $team = factory(Team::class)->create();
 
@@ -100,17 +116,31 @@ class TeamQueriesTest extends PassportTestCase
         ];
 
         $this
-            ->postJson(
-                '/graphql',
+            ->postTeamQuery($team->id)
+            ->assertStatus(200)
+            ->assertJsonFragment(
                 [
-                    'query' => "{
-                        team(id: {$team->id}) {
-                            id
-                            name
-                        }
-                    }",
+                    'message' => 'Not authorized to access this field.',
                 ]
-            )
+            );
+    }
+
+    public function testTeamQuery()
+    {
+        $team = factory(Team::class)->create();
+        $this->user->teams()->attach($team);
+
+        $expected = [
+            'data' => [
+                'team' => [
+                    'id' => (string) $team->id,
+                    'name' => $team->name,
+                ],
+            ],
+        ];
+
+        $this
+            ->postTeamQuery($team->id)
             ->assertStatus(200)
             ->assertExactJson($expected);
     }

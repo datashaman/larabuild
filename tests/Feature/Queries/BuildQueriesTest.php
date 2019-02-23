@@ -66,6 +66,7 @@ class BuildQueriesTest extends PassportTestCase
 
         $builds = factory(Build::class, 12)
             ->create()
+            ->sortByDesc('id')
             ->take(10)
             ->map(
                 function ($build) {
@@ -83,6 +84,7 @@ class BuildQueriesTest extends PassportTestCase
                     ];
                 }
             )
+            ->values()
             ->all();
 
         $expected = [
@@ -105,9 +107,51 @@ class BuildQueriesTest extends PassportTestCase
             ->assertExactJson($expected);
     }
 
+    /**
+     * @param string $hash
+     *
+     * @return TestResponse
+     */
+    protected function postBuildQuery(string $hash)
+    {
+        return $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "{
+                        build(hash: \"{$hash}\") {
+                            id
+                            hash
+                            project {
+                                id
+                                name
+                            }
+                            status
+                            commit
+                            completed_at
+                        }
+                    }",
+                ]
+            );
+    }
+
+    public function testBuildQueryAsOther()
+    {
+        $build = factory(Build::class)->create();
+
+        $this
+            ->postBuildQuery($build->hash)
+            ->assertStatus(200)
+            ->assertJsonFragment(
+                [
+                    'message' => 'Not authorized to access this field.',
+                ]
+            );
+    }
     public function testBuildQuery()
     {
         $build = factory(Build::class)->create();
+        $this->user->teams()->attach($build->project->team);
 
         $expected = [
             'data' => [
@@ -126,24 +170,7 @@ class BuildQueriesTest extends PassportTestCase
         ];
 
         $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => "{
-                        build(hash: \"{$build->hash}\") {
-                            id
-                            hash
-                            project {
-                                id
-                                name
-                            }
-                            status
-                            commit
-                            completed_at
-                        }
-                    }",
-                ]
-            )
+            ->postBuildQuery($build->hash)
             ->assertStatus(200)
             ->assertExactJson($expected);
     }

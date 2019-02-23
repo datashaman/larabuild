@@ -127,7 +127,7 @@ return [
     | Debugging is only applied if the global Laravel debug config is set to true.
     |
     */
-    'debug' => Debug::INCLUDE_DEBUG_MESSAGE | Debug::INCLUDE_TRACE,
+    'debug' => Debug::INCLUDE_DEBUG_MESSAGE,
 
     /*
     |--------------------------------------------------------------------------
@@ -140,7 +140,7 @@ return [
     |
     */
     'error_handlers' => [
-        \Nuwave\Lighthouse\Execution\ExtensionErrorHandler::class,
+        Nuwave\Lighthouse\Execution\ExtensionErrorHandler::class,
         App\Lighthouse\ErrorHandler::class,
     ],
 
@@ -153,7 +153,7 @@ return [
     |
     */
     'extensions' => [
-        // \Nuwave\Lighthouse\Schema\Extensions\TracingExtension::class
+        // Nuwave\Lighthouse\Schema\Extensions\TracingExtension::class
     ],
 
      /*
