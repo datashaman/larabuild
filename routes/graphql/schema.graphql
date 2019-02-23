@@ -10,6 +10,7 @@ type Query @middleware(checks: ["auth:api"]) {
 
     project(id: ID! @eq): Project @find
     projects: [Project!]! @paginate(type: "paginator")
+    projectBuilds(project_id: ID!): [Build!]
 
     team(id: ID! @eq): Team @find
     teams: [Team!]! @paginate(type: "paginator")
