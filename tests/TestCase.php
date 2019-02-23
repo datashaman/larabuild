@@ -9,4 +9,9 @@ abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
     use RefreshDatabase;
+
+    protected function formatDateTime($value)
+    {
+        return $value->toAtomString();
+    }
 }

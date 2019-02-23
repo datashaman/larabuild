@@ -5,6 +5,8 @@ type Query @middleware(checks: ["auth:api"]) {
     builds: [Build!]! @paginate(type: "paginator")
     build(hash: String! @eq): Build @find
 
+    me: User @auth
+
     projects: [Project!]! @paginate(type: "paginator")
     project(id: ID! @eq): Project @find
 

@@ -7,33 +7,13 @@ use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use DB;
-use Tests\TestCase;
+use Tests\PassportTestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Laravel\Passport\Passport;
 
-
-class QueriesTest extends TestCase
+class QueriesTest extends PassportTestCase
 {
-    /**
-     * @var User
-     */
-    protected $user;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->user = factory(User::class)->create();
-        Passport::actingAs($this->user);
-    }
-
-    protected function formatDateTime($value)
-    {
-        return $value->toAtomString();
-    }
-
     public function testBuildsQuery()
     {
         $builds = factory(Build::class, 12)
