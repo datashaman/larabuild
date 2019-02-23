@@ -46,7 +46,7 @@ type Mutation @middleware(checks: ["auth:api"]) {
 }
 
 type Build {
-    id: String!
+    id: ID!
     hash: String!
     project: Project!
     user: User!
