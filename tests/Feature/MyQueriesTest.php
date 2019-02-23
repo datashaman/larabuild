@@ -6,10 +6,8 @@ use App\Models\Build;
 use App\Models\Project;
 use App\Models\Team;
 use Tests\PassportTestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class MyTest extends PassportTestCase
+class MyQueriesTest extends PassportTestCase
 {
     public function testMeQuery()
     {

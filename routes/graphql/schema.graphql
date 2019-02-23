@@ -8,14 +8,17 @@ type Query @middleware(checks: ["auth:api"]) {
     me: User @auth
     myTeams: [Team!]!
 
-    projects: [Project!]! @paginate(type: "paginator")
     project(id: ID! @eq): Project @find
+    projects: [Project!]! @paginate(type: "paginator")
 
-    teams: [Team!]! @paginate(type: "paginator")
     team(id: ID! @eq): Team @find
+    teams: [Team!]! @paginate(type: "paginator")
+    teamProjects(team_id: ID! @eq): [Project!] @all
+    teamUsers(team_id: ID!): [User!]
 
-    users: [User!]! @paginate(type: "paginator")
     user(id: ID! @eq): User @find
+    users: [User!]! @paginate(type: "paginator")
+    userTeams(user_id: ID!): [Team!]
 }
 
 type Mutation @middleware(checks: ["auth:api"]) {
