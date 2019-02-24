@@ -24,7 +24,33 @@ Generate Passport keys:
 
     php artisan passport:keys
 
-Assuming you use valet, open the [GraphQL playground](http://larabuild.test/graphql-playground) to start using the GraphQL API.
+Create an admin user:
+
+    php artisan larabuild:user name email password --roles=admin
+
+Generate a Bearer access token:
+
+    php artisan larabuild:access-token tokenName [--id=userId] [--email=userEmail]
+
+Either _id_ or _email_ must be specified. _tokenName_ should represent the GraphQL client, so _playground_ will do.
+
+Assuming you use valet, open the [GraphQL playground](http://larabuild.test/graphql-playground).
+
+Edit the _HTTP HEADERS_ and add an _Authorization_ header:
+
+    {
+        "Authorization": "Bearer token"
+    }
+
+If you use a client other than the playground, you might have to add another header:
+
+    {
+        "X-Requested-With": "XMLHttpRequest"
+    }
+
+Replace the word _token_ with the output from the command above.
+
+Congratulations, you're connected to the GraphQL API!
 
 ## Screenshots
 
