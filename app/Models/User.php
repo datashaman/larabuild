@@ -67,8 +67,8 @@ class User extends Authenticatable
     }
 
     /**
-     * @param  string    $role
-     * @return Team|null $team
+     * @param  string   $role
+     * @param Team|null $team
      */
     public function addRole(string $role, Team $team = null)
     {
@@ -80,13 +80,17 @@ class User extends Authenticatable
     }
 
     /**
-     * @param string $role
+     * @param string    $role
+     * @param Team|null $team
      */
-    public function removeRole(string $role)
+    public function removeRole(string $role, Team $team = null)
     {
         if (in_array($role, config('larabuild.roles'))) {
+            $teamId = is_null($team) ? null : $team->id;
+
             $this->userRoles()
                 ->where('role', $role)
+                ->where('team_id', $teamId)
                 ->delete();
         }
     }
