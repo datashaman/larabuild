@@ -17,6 +17,7 @@ Table of Contents
             * [Create a project](#create-a-project)
             * [Build a project](#build-a-project)
       * [Roles](#roles)
+      * [Schema](https://github.com/datashaman/larabuild/wiki/Schema)
       * [Screenshots](#screenshots)
       * [TODO](#todo)
       * [License](#license)
