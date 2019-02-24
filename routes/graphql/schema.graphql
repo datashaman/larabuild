@@ -50,17 +50,17 @@ type Mutation @middleware(checks: ["auth:api"]) {
     ): User
 
     createProject(
-        project: ProjectInput!
+        project: CreateProjectInput!
     ): Project @can(if: "create", model: "App\\Models\\Project")
 
     updateProject(
         id: ID! @rules(apply: ["required"])
-        project: ProjectInput!
-    ): Project @update
+        project: UpdateProjectInput!
+    ): Project
 
     deleteProject(
         id: ID! @rules(apply: ["required"])
-    ): Project @delete
+    ): Project
 }
 
 type Build @model {
@@ -102,8 +102,13 @@ type User @model {
     updated_at: DateTime
 }
 
-input ProjectInput {
+input CreateProjectInput {
     team_id: ID! @rules(apply: ["required"])
+    name: String! @rules(apply: ["required"])
+    repository: String! @rules(apply: ["required", "url"])
+}
+
+input UpdateProjectInput {
     name: String! @rules(apply: ["required"])
     repository: String! @rules(apply: ["required", "url"])
 }

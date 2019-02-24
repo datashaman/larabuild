@@ -46,7 +46,8 @@ class ProjectPolicy extends AbstractPolicy
      */
     public function create(User $user)
     {
-        return $user->hasRole('team-admin');
+        // Authorization checked in mutation
+        return true;
     }
 
     /**
@@ -58,7 +59,8 @@ class ProjectPolicy extends AbstractPolicy
      */
     public function update(User $user, Project $project)
     {
-        //
+        // Authorization checked in mutation
+        return true;
     }
 
     /**
@@ -70,7 +72,8 @@ class ProjectPolicy extends AbstractPolicy
      */
     public function delete(User $user, Project $project)
     {
-        //
+        // Authorization checked in mutation
+        return true;
     }
 
     /**
