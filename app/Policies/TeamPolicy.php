@@ -7,7 +7,13 @@ use App\Models\Team;
 
 class TeamPolicy extends AbstractPolicy
 {
-    protected function userIsInTeam(User $user, Team $team)
+    /**
+     * @param User $actingUser
+     * @param Team $team
+     *
+     * @return bool
+     */
+    protected function userIsInTeam(User $user, Team $team): bool
     {
         return $user
             ->teams()

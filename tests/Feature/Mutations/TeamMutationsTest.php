@@ -120,21 +120,20 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testUpdateTeamAsTeamAdminInTeam()
     {
-        $this->user->addRole('team-admin');
+        $team = factory(Team::class)->create();
+        $this->user->teams()->attach($team);
+        $this->user->addRole('team-admin', $team);
 
-        $existingTeam = factory(Team::class)->create();
-        $this->user->teams()->attach($existingTeam);
-
-        $team = [
+        $attrs = [
             'name' => $this->faker->words(3, true),
         ];
 
         $this
-            ->postUpdateTeam($existingTeam->id, $team)
+            ->postUpdateTeam($team->id, $attrs)
             ->assertOk()
-            ->assertJsonFragment($team);
+            ->assertJsonFragment($attrs);
 
-        $this->assertDatabaseHas('teams', $team);
+        $this->assertDatabaseHas('teams', $attrs);
     }
 
     public function testUpdateTeamAsTeamAdminNotInTeam()

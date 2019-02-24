@@ -43,11 +43,11 @@ type Mutation @middleware(checks: ["auth:api"]) {
     updateUser(
         id: ID! @rules(apply: ["required"])
         user: UserInput!
-    ): User @update
+    ): User
 
     deleteUser(
         id: ID! @rules(apply: ["required"])
-    ): User @delete
+    ): User
 
     createProject(
         project: ProjectInput!

@@ -7,6 +7,25 @@ use App\Models\User;
 class UserPolicy extends AbstractPolicy
 {
     /**
+     * @param User $actingUser
+     * @param User $user
+     *
+     * @return bool
+     */
+    protected function userIsTeamAdminInSameTeam(User $actingUser, User $user): bool
+    {
+        $adminTeamIds = $actingUser
+            ->userRoles()
+            ->where('user_roles.role', 'team-admin')
+            ->pluck('user_roles.team_id');
+
+        return $user
+            ->teams()
+            ->whereIn('teams.id', $adminTeamIds)
+            ->exists();
+    }
+
+    /**
      * Determine whether the user can view the user index.
      *
      * @param User $actingUser
@@ -49,7 +68,7 @@ class UserPolicy extends AbstractPolicy
      */
     public function update(User $actingUser, User $user)
     {
-        return $actingUser->id === $user->id;
+        return $this->userIsTeamAdminInSameTeam($actingUser, $user);
     }
 
     /**
@@ -61,7 +80,7 @@ class UserPolicy extends AbstractPolicy
      */
     public function delete(User $actingUser, User $user)
     {
-        return false;
+        return $this->userIsTeamAdminInSameTeam($actingUser, $user);
     }
 
     /**
@@ -73,7 +92,7 @@ class UserPolicy extends AbstractPolicy
      */
     public function restore(User $actingUser, User $user)
     {
-        return false;
+        return $this->userIsTeamAdminInSameTeam($actingUser, $user);
     }
 
     /**
