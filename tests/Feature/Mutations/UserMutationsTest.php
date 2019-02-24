@@ -293,4 +293,127 @@ class UserMutationsTest extends PassportTestCase
 
         $this->assertDatabaseHas('users', $attrs);
     }
+
+    public function postAddRole(int $id, string $role)
+    {
+        return $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "
+                        mutation addUserRole(\$id: ID!, \$role: String!) {
+                            addUserRole(id: \$id, role: \$role) {
+                                userRoles {
+                                    role
+                                }
+                            }
+                        }
+                    ",
+                    'variables' => compact('id', 'role'),
+                ]
+            );
+    }
+
+    public function testAddRole()
+    {
+        $user = factory(User::class)->create();
+
+        $this
+            ->postAddRole($user->id, 'admin')
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'You are not authorized to access addUserRole',
+                ]
+            );
+
+        $this->assertFalse($user->hasRole('admin'));
+    }
+
+    public function testAddRoleAsAdmin()
+    {
+        $this->user->addRole('admin');
+
+        $user = factory(User::class)->create();
+
+        $fragment = [
+            'data' => [
+                'addUserRole' => [
+                    'userRoles' => [
+                        [
+                            'role' => 'admin',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $this
+            ->postAddRole($user->id, 'admin')
+            ->assertOk()
+            ->assertJsonFragment($fragment);
+
+        $this->assertTrue($user->hasRole('admin'));
+    }
+
+    public function postRemoveRole(int $id, string $role)
+    {
+        return $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "
+                        mutation removeUserRole(\$id: ID!, \$role: String!) {
+                            removeUserRole(id: \$id, role: \$role) {
+                                userRoles {
+                                    role
+                                }
+                            }
+                        }
+                    ",
+                    'variables' => compact('id', 'role'),
+                ]
+            );
+    }
+
+    public function testRemoveRole()
+    {
+        $user = factory(User::class)->create();
+        $user->addRole('admin');
+
+        $this
+            ->postRemoveRole($user->id, 'admin')
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'You are not authorized to access removeUserRole',
+                ]
+            );
+
+        $this->assertTrue($user->hasRole('admin'));
+    }
+
+    public function testRemoveRoleAsAdmin()
+    {
+        $this->user->addRole('admin');
+
+        $user = factory(User::class)->create();
+        $user->addRole('admin');
+
+        $fragment = [
+            'data' => [
+                'removeUserRole' => [
+                    'userRoles' => [
+                    ],
+                ],
+            ],
+        ];
+
+        $this
+            ->postRemoveRole($user->id, 'admin')
+            ->assertOk()
+            ->assertJsonFragment($fragment);
+
+        $this->assertFalse($user->hasRole('admin'));
+    }
 }
