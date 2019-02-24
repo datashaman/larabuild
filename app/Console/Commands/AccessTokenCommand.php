@@ -15,7 +15,7 @@ class AccessTokenCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Generate an access token for the user.';
+    protected $description = 'Generate an access token for a user';
 
     /**
      * @return mixed
