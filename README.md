@@ -200,3 +200,12 @@ If no `.larabuild.yml` file is found, the build has a status of `not-found`. Whi
 - build
     - belongsTo project
     - belongsTo user
+
+## TODO
+
+- Create an HTML interface for easier frontend management
+- Add more features to `.larabuild.yml` format, such as service selection
+- Run commands within a secure chroot jail or even docker
+- Add timeout detection for the commands
+- Streaming interface for the output
+- Add webhook handler to automate the build process
