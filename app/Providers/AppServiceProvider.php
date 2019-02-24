@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Docker\Docker;
 use GitWrapper\GitWrapper;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +25,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->app->singleton(
+            Docker::class,
+            function ($app) {
+                return Docker::create();
+            }
+        );
+
         $this->app->singleton(
             GitWrapper::class,
             function ($app) {
