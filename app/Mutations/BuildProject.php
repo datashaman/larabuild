@@ -27,6 +27,6 @@ class BuildProject
             return $build;
         }
 
-        throw new AuthorizationException('You are not authorized to access deleteTeam');
+        throw new AuthorizationException('You are not authorized to access buildProject');
     }
 }

@@ -285,9 +285,30 @@ class ProjectMutationsTest extends PassportTestCase
 
     public function testBuildProject()
     {
-        $this->user->addRole('admin');
-
         $project = factory(Project::class)->create();
+
+        $this
+            ->postBuildProject($project->id, 'master')
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'message' => 'You are not authorized to access buildProject',
+                ]
+            );
+
+        $this->assertDatabaseMissing(
+            'builds',
+            [
+                'project_id' => $project->id,
+                'commit' => 'master',
+            ]
+        );
+    }
+
+    public function testBuildProjectInTeam()
+    {
+        $project = factory(Project::class)->create();
+        $this->user->teams()->attach($project->team);
 
         $this
             ->postBuildProject($project->id, 'master')
@@ -310,4 +331,31 @@ class ProjectMutationsTest extends PassportTestCase
         );
     }
 
+    public function testBuildProjectAsAdmin()
+    {
+        $this->user->addRole('admin');
+
+        $project = factory(Project::class)->create();
+        $this->user->teams()->attach($project->team);
+
+        $this
+            ->postBuildProject($project->id, 'master')
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'project' => [
+                        'id' => (string) $project->id,
+                    ],
+                    'commit' => 'master',
+                ]
+            );
+
+        $this->assertDatabaseHas(
+            'builds',
+            [
+                'project_id' => $project->id,
+                'commit' => 'master',
+            ]
+        );
+    }
 }
