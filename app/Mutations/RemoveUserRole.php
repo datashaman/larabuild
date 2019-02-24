@@ -2,6 +2,7 @@
 
 namespace App\Mutations;
 
+use App\Models\Team;
 use App\Models\User;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -20,7 +21,8 @@ class RemoveUserRole
     public function resolve($rootValue, array $args, GraphQLContext $context, ResolveInfo $resolveInfo)
     {
         $user = User::findOrFail($args['id']);
-        $user->removeRole($args['role']);
+        $team = $args['team_id'] ? Team::findOrFail($args['team_id']) : null;
+        $user->removeRole($args['role'], $team);
 
         return $user;
     }
