@@ -197,6 +197,8 @@ If any of the commands listed fails during the process, the build has a status o
 
 If no `.larabuild.yml` file is found, the build has a status of `not-found`. While the job is running, the status is `started`.
 
+Look at the [feature tests](tests/Feature) for how to use the rest of the GraphQL API, or consult the introspected documentation in your GraphQL client.
+
 ## Screenshots
 
 ![Create Team](screenshots/Screenshot-Create-Team.png)
