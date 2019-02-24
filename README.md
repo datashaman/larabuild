@@ -91,6 +91,17 @@ Create a team to hold our project:
         }
     }
 
+The JSON response will include the team's `id`:
+
+    {
+        "data": {
+            "createTeam": {
+                "id": 1,
+                "name": "Example Team"
+            }
+        }
+    }
+
 #### Create a project
 
 Use the `id` from above in `team_id` and the content of the private key file _larabuild_ for `private_key` below to create a project:
@@ -117,11 +128,25 @@ Use the `id` from above in `team_id` and the content of the private key file _la
         }
     }
 
-This will return a JSON response including the project `id`.
+This will return a JSON response including the project `id`:
+
+    {
+        "data": {
+            "createProject": {
+                "id": 1,
+                "team": {
+                    "id": 1,
+                    "name": "Example Team"
+                },
+                "name": "Example Project",
+                "repository": "https://github.com/user/repository.git"
+            }
+        }
+    }
 
 #### Build a project
 
-We will now generate our first build.  As an admin user, you can build projects in any team:
+We will now generate our first build.  As an admin user, you can build projects in any team. Use the `project_id` from above:
 
     {
         "query": "
@@ -150,6 +175,10 @@ The commands in the `install` value from `.larabuild.yml` file in the project re
             }
         }
     }
+
+If any of the commands listed fails during the process, the build has a status of `failed`.
+
+If no `.larabuild.yml` file is found, the build has a status of `not-found`. While the job is running, the status is `started`.
 
 ## Screenshots
 
