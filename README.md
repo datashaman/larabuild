@@ -32,7 +32,7 @@ Generate a Bearer access token:
 
     php artisan larabuild:access-token tokenName [--id=userId] [--email=userEmail]
 
-Either _id_ or _email_ must be specified. _tokenName_ should represent the GraphQL client, so _playground_ will do.
+Either `id` or `email` must be specified. `tokenName` should represent the GraphQL client, so _playground_ will do.
 
 Assuming you use valet, open the [GraphQL playground](http://larabuild.test/graphql-playground).
 
@@ -42,21 +42,40 @@ Edit the _HTTP HEADERS_ and add an _Authorization_ header:
         "Authorization": "Bearer token"
     }
 
-If you use a client other than the playground, you might have to add another header:
+If you use a client other than playground, you might have to add another header:
 
     {
         "X-Requested-With": "XMLHttpRequest"
     }
 
-Replace the word _token_ with the output from the command above.
+Replace the word `token` with the output from the access token command above.
 
 Congratulations, you're connected to the GraphQL API!
 
 ## Workflow
 
-Example queries are shown as JSON. Put the query and variables wherever they should go in your GraphQL client.
+### Prepare project repository
 
-Create a team.
+Create a private key for the deploy user:
+
+    ssh-keygen
+
+When prompted save the file locally in your folder somwewhere. Assuming you called it _larabuild_, it will generate _larabuild_ and _larabuild.pub_.
+
+Create a new _deploy key_ (under Settings / Deploy Keys on _GitHub_) in the project repository, and paste the contents of _larabuild.pub_ into the form.
+
+Add, commit and push a file to the project repository named `.larabuild.yml` containing the following content:
+
+    install:
+        - echo "hello world"
+
+### Create entities
+
+Example queries are shown as pseudo-JSON. Put the query and variables wherever they should go in your GraphQL client.
+
+#### Create a team
+
+Create a team to hold our project:
 
     {
         "query": "
@@ -72,20 +91,9 @@ Create a team.
         }
     }
 
-Create a private key for the deploy user:
+#### Create a project
 
-    ssh-keygen
-
-When prompted save the file locally in your folder somwewhere. Assuming you called it _larabuild_, it will generate _larabuild_ and _larabuild.pub_. Create a new _Deploy Key_ in the target repository, and paste the contents of _larabuild.pub_ into the form.
-
-Add, commit and push a file in the project repository named `.larabuild.yml` containing the following content:
-
-    install:
-        - echo "hello world"
-
-Now onto creating a project in that team.
-
-Use the `id` from above in `team_id` and the content of the private key file _larabuild_ for `private_key` below to create a project.
+Use the `id` from above in `team_id` and the content of the private key file _larabuild_ for `private_key` below to create a project:
 
     {
         "query": "
@@ -109,8 +117,11 @@ Use the `id` from above in `team_id` and the content of the private key file _la
         }
     }
 
-This will return a JSON response including the project `id`. We will now generate our first build.  As an admin user, you can build projects in any team:
+This will return a JSON response including the project `id`.
 
+#### Build a project
+
+We will now generate our first build.  As an admin user, you can build projects in any team:
 
     {
         "query": "
