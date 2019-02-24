@@ -106,4 +106,28 @@ class UserPolicy extends AbstractPolicy
     {
         return false;
     }
+
+    /**
+     * Determine whether the user can add a role to the user.
+     *
+     * @param User $actingUser
+     * @param User $user
+     * @return mixed
+     */
+    public function addRole(User $actingUser)
+    {
+        return $actingUser->hasRole('admin');
+    }
+
+    /**
+     * Determine whether the user can remove a role from the user.
+     *
+     * @param User $actingUser
+     * @param User $user
+     * @return mixed
+     */
+    public function removeRole(User $actingUser)
+    {
+        return $actingUser->hasRole('admin');
+    }
 }
