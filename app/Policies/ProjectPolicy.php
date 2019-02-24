@@ -46,7 +46,7 @@ class ProjectPolicy extends AbstractPolicy
      */
     public function create(User $user)
     {
-        //
+        return $user->hasRole('team-admin');
     }
 
     /**

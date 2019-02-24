@@ -48,6 +48,19 @@ type Mutation @middleware(checks: ["auth:api"]) {
     deleteUser(
         id: ID! @rules(apply: ["required"])
     ): User @delete
+
+    createProject(
+        project: ProjectInput!
+    ): Project @can(if: "create", model: "App\\Models\\Project")
+
+    updateProject(
+        id: ID! @rules(apply: ["required"])
+        project: ProjectInput!
+    ): Project @update
+
+    deleteProject(
+        id: ID! @rules(apply: ["required"])
+    ): Project @delete
 }
 
 type Build @model {
@@ -87,6 +100,12 @@ type User @model {
     email: String!
     created_at: DateTime!
     updated_at: DateTime
+}
+
+input ProjectInput {
+    team_id: ID! @rules(apply: ["required"])
+    name: String! @rules(apply: ["required"])
+    repository: String! @rules(apply: ["required", "url"])
 }
 
 input TeamInput {

@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
+    /**
+     * @var array
+     */
+    protected $fillable = [
+        'name',
+        'repository',
+        'team_id',
+    ];
+
     public function team()
     {
         return $this->belongsTo(Team::class);
