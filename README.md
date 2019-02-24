@@ -88,7 +88,9 @@ Create a new _deploy key_ (under Settings / Deploy Keys on _GitHub_) in the proj
 Add, commit and push a file to the project repository named `.larabuild.yml` containing the following content:
 
     install:
-        - echo "hello world"
+        - ['echo', 'hello world']
+
+You must use list format for the command if you are using _docker_ execution. Local execution (the default) commands can be specified as strings.
 
 ### Create entities
 

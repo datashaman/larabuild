@@ -4,6 +4,13 @@ namespace App\Support;
 
 use App\Models\Build;
 use App\Models\Project;
+use Docker\API\Model\ContainerExec;
+use Docker\API\Model\ContainersCreatePostBody;
+use Docker\API\Model\ContainersIdExecPostBody;
+use Docker\API\Model\ExecIdStartPostBody;
+use Docker\API\Model\HostConfig;
+use Docker\API\Model\Mount;
+use Docker\Docker;
 use File;
 use GitWrapper\GitWrapper;
 use Illuminate\Support\Carbon;
@@ -44,6 +51,8 @@ class ProjectBuilder
      */
     protected function handle(Build $build, string $workingFolder)
     {
+        $output = '';
+
         $filename = "$workingFolder/.larabuild.yml";
 
         if (!File::exists($filename)) {
@@ -61,30 +70,92 @@ class ProjectBuilder
             $install = [$install];
         }
 
-        $output = '';
-
         $build->status = 'started';
 
-        $cwd = getcwd();
-        chdir($workingFolder);
+        $docker = (bool) array_get($config, 'docker', false);
 
-        collect($install)
-            ->each(
-                function ($command) use ($build, &$output) {
-                    $process = new Process($command);
+        if (config('larabuild.docker') && $docker) {
+            Log::debug('Docker build');
 
-                    $process->run(
-                        function ($type, $buffer) use (&$output) {
-                            $output .= $buffer;
-                        }
-                    );
+            $client = app(Docker::class);
 
-                    if (!$process->isSuccessful()) {
-                        $build->status = 'fail';
-                        return false;
+            $hostConfig = new HostConfig();
+            $hostConfig->setBinds(["$workingFolder:/app"]);
+
+            $containerConfig = new ContainersCreatePostBody();
+            $containerConfig->setHostConfig($hostConfig);
+            $containerConfig->setImage('ubuntu:latest');
+            $containerConfig->setCmd(['bash']);
+            $containerConfig->setTty(true);
+
+            $containerCreateResult = $client->containerCreate($containerConfig);
+            $containerId = $containerCreateResult->getId();
+
+            $client->containerStart($containerId);
+
+            collect($install)
+                ->each(
+                    function ($command) use ($build, $client, $containerId, &$output) {
+                        $execConfig = new ContainersIdExecPostBody();
+                        $execConfig->setAttachStderr(true);
+                        $execConfig->setAttachStdout(true);
+                        $execConfig->setWorkingDir('/app');
+                        $execConfig->setCmd($command);
+
+                        $execId = $client->containerExec($containerId, $execConfig)->getId();
+
+                        $execStartConfig = new ExecIdStartPostBody();
+                        $execStartConfig->setDetach(false);
+
+                        $stream = $client->execStart($execId, $execStartConfig);
+
+                        $stream->onStdout(
+                            function ($buffer) use (&$output) {
+                                Log::debug('Stdout', compact('buffer'));
+                                $output .= $buffer;
+                            }
+                        );
+
+                        $stream->onStderr(
+                            function ($buffer) use (&$output) {
+                                Log::debug('Stderr', compact('buffer'));
+                                $output .= $buffer;
+
+                                $build->status = 'fail';
+                            }
+                        );
+
+                        $stream->wait();
                     }
-                }
-            );
+                );
+
+            $client->containerStop($containerId);
+        } else {
+            Log::debug('Local build');
+
+            $cwd = getcwd();
+            chdir($workingFolder);
+
+            collect($install)
+                ->each(
+                    function ($command) use ($build, &$output) {
+                        $process = new Process($command);
+
+                        $process->run(
+                            function ($type, $buffer) use (&$output) {
+                                $output .= $buffer;
+                            }
+                        );
+
+                        if (!$process->isSuccessful()) {
+                            $build->status = 'fail';
+                            return false;
+                        }
+                    }
+                );
+
+            chdir($cwd);
+        }
 
         $build->output = $output;
 
@@ -97,7 +168,5 @@ class ProjectBuilder
         if (!$build->save()) {
             Log::error('Error saving build', ['errors' => $build->errors()->all()]);
         }
-
-        chdir($cwd);
     }
 }
