@@ -12,10 +12,12 @@ class CreateRoleUserTable extends Migration
             $table->increments('id');
             $table->integer('user_id')->unsigned();
             $table->string('role');
+            $table->integer('team_id')->unsigned()->nullable();
             $table->timestamps();
 
-            $table->unique(['user_id', 'role']);
+            $table->unique(['user_id', 'role', 'team_id']);
             $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('team_id')->references('id')->on('teams');
         });
     }
 

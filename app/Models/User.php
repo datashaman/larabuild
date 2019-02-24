@@ -47,28 +47,35 @@ class User extends Authenticatable
 
     /**
      * @return string|array $role
+     * @return Team|null    $team
      *
      * @return bool
      */
-    public function hasRole($roles)
+    public function hasRole($roles, Team $team = null): bool
     {
         if (is_string($roles)) {
             $roles = [$roles];
         }
 
+        $teamId = is_null($team) ? null : $team->id;
+
         return $this
             ->userRoles()
             ->whereIn('role', $roles)
+            ->where('team_id', $teamId)
             ->exists();
     }
 
     /**
-     * @param string $role
+     * @param  string    $role
+     * @return Team|null $team
      */
-    public function addRole(string $role)
+    public function addRole(string $role, Team $team = null)
     {
         if (in_array($role, config('larabuild.roles'))) {
-            $this->userRoles()->create(['role' => $role]);
+            $teamId = is_null($team) ? null : $team->id;
+
+            $this->userRoles()->create(['role' => $role, 'team_id' => $teamId]);
         }
     }
 
@@ -82,16 +89,5 @@ class User extends Authenticatable
                 ->where('role', $role)
                 ->delete();
         }
-    }
-
-    /**
-     * @return array
-     */
-    public function getRolesAttribute()
-    {
-        return $this
-            ->userRoles()
-            ->pluck('role')
-            ->all();
     }
 }
