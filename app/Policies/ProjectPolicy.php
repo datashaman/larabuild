@@ -79,8 +79,8 @@ class ProjectPolicy extends AbstractPolicy
     /**
      * Determine whether the user can restore the project.
      *
-     * @param  User  $user
-     * @param  Project  $project
+     * @param  User    $user
+     * @param  Project $project
      * @return mixed
      */
     public function restore(User $user, Project $project)
@@ -91,12 +91,24 @@ class ProjectPolicy extends AbstractPolicy
     /**
      * Determine whether the user can permanently delete the project.
      *
-     * @param  User  $user
-     * @param  Project  $project
+     * @param  User    $user
+     * @param  Project $project
      * @return mixed
      */
     public function forceDelete(User $user, Project $project)
     {
         //
+    }
+
+    /**
+     * Determine whether the user can build the project.
+     *
+     * @param  User    $user
+     * @param  Project $project
+     * @return mixed
+     */
+    public function build(User $user, Project $project)
+    {
+        return true;
     }
 }
