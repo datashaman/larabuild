@@ -2,6 +2,21 @@
 
 CI / CD server running on Laravel with a GraphQL API. Built for [LaraHack #3 2018](https://larahack.com).
 
+Table of Contents
+=================
+
+   * [LaraBuild](#larabuild)
+      * [Installation](#installation)
+      * [Workflow](#workflow)
+         * [Prepare project repository](#prepare-project-repository)
+         * [Create entities](#create-entities)
+            * [Create a team](#create-a-team)
+            * [Create a project](#create-a-project)
+            * [Build a project](#build-a-project)
+      * [Screenshots](#screenshots)
+      * [Models](#models)
+      * [TODO](#todo)
+
 ## Installation
 
 Setup a MySQL database and user for access.
