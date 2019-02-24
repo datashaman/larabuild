@@ -8,6 +8,7 @@ Table of Contents
 =================
 
    * [LaraBuild](#larabuild)
+   * [Table of Contents](#table-of-contents)
       * [Installation](#installation)
       * [Workflow](#workflow)
          * [Prepare project repository](#prepare-project-repository)
@@ -15,8 +16,8 @@ Table of Contents
             * [Create a team](#create-a-team)
             * [Create a project](#create-a-project)
             * [Build a project](#build-a-project)
+      * [Roles](#roles)
       * [Screenshots](#screenshots)
-      * [Models](#models)
       * [TODO](#todo)
 
 ## Installation
@@ -199,33 +200,32 @@ If no `.larabuild.yml` file is found, the build has a status of `not-found`. Whi
 
 Look at the [feature tests](tests/Feature) for how to use the rest of the GraphQL API, or consult the introspected documentation in your GraphQL client.
 
+## Roles
+
+Regular users (no role)
+    
+- can belong to many teams
+- cannot administer teams or their projects
+- can view their teams, projects and builds
+- can build projects in their teams
+
+Team admin users (`team-admin` role)
+
+- can update the team
+- can create, update and delete projects
+- can create and update users
+
+Admin users (`admin` role)
+
+- can access everything
+- can add and remove roles from users
+
 ## Screenshots
 
 ![Create Team](screenshots/Screenshot-Create-Team.png)
 
 ![Build Project](screenshots/Screenshot-Build-Project.png)
 
-## Models
-
-- team
-    - belongsToMany users
-    - hasMany projects
-- user
-    - belongsTo team
-    - hasMany builds
-- project
-    - belongsTo team
-    - hasMany builds
-- build
-    - belongsTo project
-    - belongsTo user
-
 ## TODO
 
-- Create an HTML interface for easier frontend management
-- Add more features to `.larabuild.yml` format, such as service selection
-- Run commands within a secure chroot jail or even docker
-- Add timeout detection for the commands
-- Streaming interface for the output
-- Add webhook handler to automate the build process
-- Refactor tests to use mocks instead of [example repository](https://github.com/datashaman/larabuild-example)
+All the current _TODO_ items have been logged as [issues](https://github.com/datashaman/larabuild/issues).
