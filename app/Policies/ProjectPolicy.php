@@ -109,6 +109,9 @@ class ProjectPolicy extends AbstractPolicy
      */
     public function build(User $user, Project $project)
     {
-        return true;
+        return $user
+            ->teams()
+            ->where('teams.id', $project->team->id)
+            ->exists();
     }
 }
