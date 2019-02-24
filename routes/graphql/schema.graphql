@@ -86,6 +86,7 @@ type Build @model {
     user: User!
     status: String!
     commit: String!
+    output: String!
     completed_at: DateTime
     created_at: DateTime!
 }
@@ -134,11 +135,13 @@ input CreateProjectInput {
     team_id: ID! @rules(apply: ["required"])
     name: String! @rules(apply: ["required"])
     repository: String! @rules(apply: ["required", "url"])
+    private_key: String! @rules(apply: ["required"])
 }
 
 input UpdateProjectInput {
     name: String! @rules(apply: ["required"])
     repository: String! @rules(apply: ["required", "url"])
+    private_key: String! @rules(apply: ["required"])
 }
 
 input TeamInput {

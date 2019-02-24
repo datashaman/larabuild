@@ -8,6 +8,17 @@ use Tests\PassportTestCase;
 
 class ProjectMutationsTest extends PassportTestCase
 {
+    /**
+     * @var string
+     */
+    protected $privateKey;
+
+    public function setUp()
+    {
+        parent::setUp();
+        $this->privateKey = trim(file_get_contents(__DIR__ . '/../../fixtures/private-key'));
+    }
+
     public function postCreateProject(array $project)
     {
         return $this
@@ -39,7 +50,8 @@ class ProjectMutationsTest extends PassportTestCase
         $project = [
             'team_id' => $team->id,
             'name' => $this->faker->words(3, true),
-            'repository' => $this->faker->url,
+            'repository' => 'https://github.com/datashaman/larabuild-example.git',
+            'private_key' => $this->privateKey,
         ];
 
         $this
@@ -63,10 +75,12 @@ class ProjectMutationsTest extends PassportTestCase
         $project = [
             'team_id' => $team->id,
             'name' => $this->faker->words(3, true),
-            'repository' => $this->faker->url,
+            'repository' => 'https://github.com/datashaman/larabuild-example.git',
+            'private_key' => $this->privateKey,
         ];
 
         $fragment = collect($project)
+            ->forget('private_key')
             ->forget('team_id')
             ->put(
                 'team',
@@ -103,10 +117,12 @@ class ProjectMutationsTest extends PassportTestCase
         $project = [
             'team_id' => $team->id,
             'name' => $this->faker->words(3, true),
-            'repository' => $this->faker->url,
+            'repository' => 'https://github.com/datashaman/larabuild-example.git',
+            'private_key' => $this->privateKey,
         ];
 
         $fragment = collect($project)
+            ->forget('private_key')
             ->forget('team_id')
             ->put(
                 'team',
@@ -142,7 +158,8 @@ class ProjectMutationsTest extends PassportTestCase
         $project = [
             'team_id' => $team->id,
             'name' => $this->faker->words(3, true),
-            'repository' => $this->faker->url,
+            'repository' => 'https://github.com/datashaman/larabuild-example.git',
+            'private_key' => $this->privateKey,
         ];
 
         $this
@@ -182,7 +199,8 @@ class ProjectMutationsTest extends PassportTestCase
 
         $attrs = [
             'name' => $this->faker->words(3, true),
-            'repository' => $this->faker->url,
+            'repository' => 'https://github.com/datashaman/larabuild-example.git',
+            'private_key' => $this->privateKey,
         ];
 
         $this
@@ -205,13 +223,18 @@ class ProjectMutationsTest extends PassportTestCase
 
         $attrs = [
             'name' => $this->faker->words(3, true),
-            'repository' => $this->faker->url,
+            'repository' => 'https://github.com/datashaman/larabuild-example.git',
+            'private_key' => $this->privateKey,
         ];
+
+        $fragment = collect($attrs)
+            ->forget('private_key')
+            ->all();
 
         $this
             ->postUpdateProject($project->id, $attrs)
             ->assertOk()
-            ->assertJsonFragment($attrs);
+            ->assertJsonFragment($fragment);
 
         $this->assertDatabaseHas('projects', $attrs);
     }
@@ -226,15 +249,20 @@ class ProjectMutationsTest extends PassportTestCase
 
         $attrs = [
             'name' => $this->faker->words(3, true),
-            'repository' => $this->faker->url,
+            'repository' => 'https://github.com/datashaman/larabuild-example.git',
+            'private_key' => $this->privateKey,
         ];
+
+        $fragment = collect($attrs)
+            ->forget('private_key')
+            ->all();
 
         $this
             ->postUpdateProject($project->id, $attrs)
             ->assertOk()
-            ->assertJsonFragment($attrs);
+            ->assertJsonFragment($fragment);
 
-        $this->assertDatabaseHas('projects', $attrs);
+        $this->assertDatabaseHas('projects', $fragment);
     }
 
     public function testUpdateProjectAsTeamAdminNotInTeam()
@@ -246,7 +274,8 @@ class ProjectMutationsTest extends PassportTestCase
 
         $attrs = [
             'name' => $this->faker->words(3, true),
-            'repository' => $this->faker->url,
+            'repository' => 'https://github.com/datashaman/larabuild-example.git',
+            'private_key' => $this->privateKey,
         ];
 
         $this
@@ -285,7 +314,12 @@ class ProjectMutationsTest extends PassportTestCase
 
     public function testBuildProject()
     {
-        $project = factory(Project::class)->create();
+        $project = factory(Project::class)->create(
+            [
+                'repository' => 'https://github.com/datashaman/larabuild-example.git',
+                'private_key' => $this->privateKey,
+            ]
+        );
 
         $this
             ->postBuildProject($project->id, 'master')
@@ -307,7 +341,13 @@ class ProjectMutationsTest extends PassportTestCase
 
     public function testBuildProjectInTeam()
     {
-        $project = factory(Project::class)->create();
+        $project = factory(Project::class)->create(
+            [
+                'repository' => 'https://github.com/datashaman/larabuild-example.git',
+                'private_key' => $this->privateKey,
+            ]
+        );
+
         $this->user->teams()->attach($project->team);
 
         $this
@@ -335,7 +375,13 @@ class ProjectMutationsTest extends PassportTestCase
     {
         $this->user->addRole('admin');
 
-        $project = factory(Project::class)->create();
+        $project = factory(Project::class)->create(
+            [
+                'repository' => 'https://github.com/datashaman/larabuild-example.git',
+                'private_key' => $this->privateKey,
+            ]
+        );
+
         $this->user->teams()->attach($project->team);
 
         $this

@@ -6,9 +6,10 @@ return [
         'team-admin',
     ],
     'statuses' => [
+        'new',
         'started',
-        'error',
         'fail',
         'success',
+        'not-found',
     ],
 ];

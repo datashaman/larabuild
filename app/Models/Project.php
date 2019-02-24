@@ -11,8 +11,16 @@ class Project extends Model
      */
     protected $fillable = [
         'name',
+        'private_key',
         'repository',
         'team_id',
+    ];
+
+    /**
+     * @var array
+     */
+    protected $hidden = [
+        'private_key',
     ];
 
     public function team()
@@ -35,7 +43,7 @@ class Project extends Model
     /**
      * @param string $commit
      */
-    public function build(string $commit)
+    public function createBuild(string $commit)
     {
         return $this->builds()
             ->create(

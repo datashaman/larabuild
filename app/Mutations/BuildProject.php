@@ -3,7 +3,9 @@
 namespace App\Mutations;
 
 use App\Models\Project;
+use App\Support\ProjectBuilder;
 use GraphQL\Type\Definition\ResolveInfo;
+use Log;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -23,7 +25,8 @@ class BuildProject
         $project = Project::findOrFail($args['id']);
 
         if (auth()->user()->can('build', $project)) {
-            $build = $project->build($args['commit']);
+            $build = app(ProjectBuilder::class)->build($project, $args['commit']);
+
             return $build;
         }
 

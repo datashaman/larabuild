@@ -9,6 +9,13 @@ class Build extends Model
     /**
      * @var array
      */
+    protected $dates = [
+        'completed_at',
+    ];
+
+    /**
+     * @var array
+     */
     protected $fillable = [
         'commit',
     ];

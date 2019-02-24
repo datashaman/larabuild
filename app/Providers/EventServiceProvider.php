@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Build;
+use App\Observers\BuildObserver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;

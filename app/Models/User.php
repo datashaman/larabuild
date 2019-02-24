@@ -75,7 +75,7 @@ class User extends Authenticatable
         if (in_array($role, config('larabuild.roles'))) {
             $teamId = is_null($team) ? null : $team->id;
 
-            $this->userRoles()->create(['role' => $role, 'team_id' => $teamId]);
+            $this->userRoles()->updateOrCreate(['role' => $role, 'team_id' => $teamId]);
         }
     }
 
