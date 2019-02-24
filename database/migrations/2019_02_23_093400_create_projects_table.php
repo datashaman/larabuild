@@ -18,6 +18,7 @@ class CreateProjectsTable extends Migration
             $table->integer('team_id')->unsigned();
             $table->string('name');
             $table->string('repository');
+            $table->text('private_key');
             $table->timestamps();
 
             $table->unique(['team_id', 'name']);

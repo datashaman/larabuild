@@ -1,4 +1,6 @@
-prepare-testing:
-	php artisan migrate --env=testing
-	APP_ENV=testing php artisan passport:install
-	APP_ENV=testing php artisan passport:client --personal --name="Laravel Personal Access Client"
+dummy:
+
+refresh:
+	php artisan migrate:refresh --seed
+	php artisan passport:client --personal --name "Laravel Personal Access Client"
+	php artisan larabuild:access-token test --email admin-user@example.com
