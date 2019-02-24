@@ -1,5 +1,7 @@
 # LaraBuild
 
+[![Build Status](https://travis-ci.org/datashaman/larabuild.svg?branch=master)](https://travis-ci.org/datashaman/larabuild)
+
 CI / CD server running on Laravel with a GraphQL API. Built for [LaraHack #3 2018](https://larahack.com).
 
 Table of Contents
