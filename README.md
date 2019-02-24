@@ -59,13 +59,13 @@ Edit the _HTTP HEADERS_ and add an _Authorization_ header:
         "Authorization": "Bearer token"
     }
 
+Replace the word `token` with the output from the access token command above.
+
 If you use a client other than playground, you might have to add another header:
 
     {
         "X-Requested-With": "XMLHttpRequest"
     }
-
-Replace the word `token` with the output from the access token command above.
 
 Congratulations, you're connected to the GraphQL API!
 
@@ -226,3 +226,4 @@ If no `.larabuild.yml` file is found, the build has a status of `not-found`. Whi
 - Add timeout detection for the commands
 - Streaming interface for the output
 - Add webhook handler to automate the build process
+- Refactor tests to use mocks instead of [example repository](https://github.com/datashaman/larabuild-example)
