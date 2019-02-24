@@ -2,13 +2,10 @@
 
 namespace App\Mutations;
 
-use App\Models\Project;
-use App\Models\Team;
 use GraphQL\Type\Definition\ResolveInfo;
-use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
-class CreateProject
+class DeleteProject
 {
     /**
      * Return a value for the field.
@@ -21,13 +18,6 @@ class CreateProject
      */
     public function resolve($rootValue, array $args, GraphQLContext $context, ResolveInfo $resolveInfo)
     {
-        $user = auth()->user();
-        $team = Team::findOrFail(array_get($args, 'project.team_id'));
-
-        if ($user->hasRole('admin') || $user->hasRole('team-admin', $team)) {
-            return Project::create($args['project']);
-        }
-
-        throw new AuthorizationException('You are not authorized to access createProject');
+        // TODO implement the resolver
     }
 }
