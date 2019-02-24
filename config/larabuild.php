@@ -6,7 +6,7 @@ return [
         'team-admin',
     ],
     'statuses' => [
-        'busy',
+        'started',
         'error',
         'fail',
         'success',

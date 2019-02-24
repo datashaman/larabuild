@@ -16,7 +16,7 @@ class CreateBuildsTable extends Migration
         Schema::create('builds', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('project_id')->unsigned();
-            $table->string('status');
+            $table->string('status')->default('started');
             $table->string('commit');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();

@@ -260,4 +260,54 @@ class ProjectMutationsTest extends PassportTestCase
 
         $this->assertDatabaseMissing('projects', $attrs);
     }
+
+    public function postBuildProject(int $id, string $commit)
+    {
+        return $this
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => "
+                        mutation buildProject(\$id: ID!, \$commit: String!) {
+                            buildProject(id: \$id, commit: \$commit) {
+                                id
+                                project {
+                                    id
+                                }
+                                commit
+                            }
+                        }
+                    ",
+                    'variables' => compact('id', 'commit'),
+                ]
+            );
+    }
+
+    public function testBuildProject()
+    {
+        $this->user->addRole('admin');
+
+        $project = factory(Project::class)->create();
+
+        $this
+            ->postBuildProject($project->id, 'master')
+            ->assertOk()
+            ->assertJsonFragment(
+                [
+                    'project' => [
+                        'id' => (string) $project->id,
+                    ],
+                    'commit' => 'master',
+                ]
+            );
+
+        $this->assertDatabaseHas(
+            'builds',
+            [
+                'project_id' => $project->id,
+                'commit' => 'master',
+            ]
+        );
+    }
+
 }

@@ -73,6 +73,11 @@ type Mutation @middleware(checks: ["auth:api"]) {
     deleteProject(
         id: ID! @rules(apply: ["required"])
     ): Project
+
+    buildProject(
+        id: ID! @rules(apply: ["required"])
+        commit: String! @rules(apply: ["required"])
+    ): Build
 }
 
 type Build @model {

@@ -31,4 +31,17 @@ class Project extends Model
             ->latest()
             ->first();
     }
+
+    /**
+     * @param string $commit
+     */
+    public function build(string $commit)
+    {
+        return $this->builds()
+            ->create(
+                [
+                    'commit' => $commit,
+                ]
+            );
+    }
 }
