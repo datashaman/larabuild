@@ -146,7 +146,7 @@ class ProjectQueriesTest extends PassportTestCase
     public function testProjectQuery()
     {
         $project = factory(Project::class)->create();
-        $this->user->teams()->attach($project->team);
+        $this->user->addTeam($project->team);
 
         $expected = [
             'data' => [

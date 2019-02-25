@@ -129,7 +129,7 @@ class TeamQueriesTest extends PassportTestCase
     public function testTeamQuery()
     {
         $team = factory(Team::class)->create();
-        $this->user->teams()->attach($team);
+        $this->user->addTeam($team);
 
         $expected = [
             'data' => [
@@ -201,7 +201,7 @@ class TeamQueriesTest extends PassportTestCase
             ->create()
             ->each(
                 function ($user) use ($team) {
-                    $user->teams()->attach($team);
+                    $user->addTeam($team);
                 }
             )
             ->map(

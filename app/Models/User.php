@@ -94,4 +94,42 @@ class User extends Authenticatable
                 ->delete();
         }
     }
+
+    /**
+     * @param Team $user
+     *
+     * @return Team
+     */
+    public function addTeam(Team $team): Team
+    {
+        $exists = $this
+            ->teams()
+            ->where('team_user.team_id', $team->id)
+            ->exists();
+
+        if (!$exists) {
+            $this->teams()->attach($team);
+        }
+
+        return $team->refresh();
+    }
+
+    /**
+     * @param Team $user
+     *
+     * @return Team
+     */
+    public function removeTeam(Team $team): Team
+    {
+        $exists = $this
+            ->teams()
+            ->where('team_user.team_id', $team->id)
+            ->exists();
+
+        if ($exists) {
+            $this->teams()->detach($team);
+        }
+
+        return $team->refresh();
+    }
 }

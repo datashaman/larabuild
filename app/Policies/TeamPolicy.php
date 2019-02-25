@@ -103,4 +103,30 @@ class TeamPolicy extends AbstractPolicy
     {
         return false;
     }
+
+    /**
+     * Determine whether the user can add a team user.
+     *
+     * @param User $user
+     * @param Team $team
+     * @return mixed
+     */
+    public function addUser(User $user, Team $team)
+    {
+        return $this->userIsInTeam($user, $team)
+            && $user->hasRole('team-admin', $team);
+    }
+
+    /**
+     * Determine whether the user can remove a team user.
+     *
+     * @param User $user
+     * @param Team $team
+     * @return mixed
+     */
+    public function removeUser(User $user, Team $team)
+    {
+        return $this->userIsInTeam($user, $team)
+            && $user->hasRole('team-admin', $team);
+    }
 }

@@ -1,0 +1,22 @@
+FROM datashaman/larabuild:base
+
+ARG BUILD_NUMBER
+
+USER user
+
+RUN composer install --no-dev
+
+RUN php artisan optimize
+RUN php artisan config:cache
+RUN php artisan route:cache
+
+RUN yarn install
+RUN yarn run production
+
+RUN rm -rf node_modules/
+RUN rm -rf $HOME/.cache/composer/files $HOME/.composer/cache/files
+RUN yarn cache clean
+
+USER root
+
+RUN rm -rf /var/lib/apt/lists/* && apt-get clean

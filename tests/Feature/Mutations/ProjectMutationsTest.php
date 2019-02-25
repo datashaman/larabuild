@@ -111,7 +111,7 @@ class ProjectMutationsTest extends PassportTestCase
     public function testCreateProjectAsTeamAdminInTeam()
     {
         $team = factory(Team::class)->create();
-        $this->user->teams()->attach($team);
+        $this->user->addTeam($team);
         $this->user->addRole('team-admin', $team);
 
         $project = [
@@ -242,7 +242,7 @@ class ProjectMutationsTest extends PassportTestCase
     public function testUpdateProjectAsTeamAdminInTeam()
     {
         $team = factory(Team::class)->create();
-        $this->user->teams()->attach($team);
+        $this->user->addTeam($team);
         $this->user->addRole('team-admin', $team);
 
         $project = factory(Project::class)->create(['team_id' => $team->id]);
@@ -348,7 +348,7 @@ class ProjectMutationsTest extends PassportTestCase
             ]
         );
 
-        $this->user->teams()->attach($project->team);
+        $this->user->addTeam($project->team);
 
         $this
             ->postBuildProject($project->id, 'master')
@@ -382,7 +382,7 @@ class ProjectMutationsTest extends PassportTestCase
             ]
         );
 
-        $this->user->teams()->attach($project->team);
+        $this->user->addTeam($project->team);
 
         $this
             ->postBuildProject($project->id, 'master')

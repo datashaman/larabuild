@@ -1,0 +1,44 @@
+FROM php:7.2-fpm as base
+
+RUN useradd --shell /bin/bash -u 1000 -o -c "" -m user
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        apt-transport-https \
+        gnupg
+
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git \
+        libicu-dev \
+        libmemcached-dev \
+        unzip \
+        yarn \
+        zlib1g-dev
+
+RUN docker-php-ext-install -j$(nproc) intl pdo_mysql zip
+RUN pecl install memcached
+RUN docker-php-ext-enable memcached
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
+RUN apt-get install -y nodejs
+
+RUN mkdir -p /workspace/logs
+COPY . /workspace/app
+
+RUN chown -R user:user /workspace
+
+COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
+USER user
+WORKDIR /workspace/app
+
+RUN composer global require hirak/prestissimo
+RUN composer install
+
+USER root

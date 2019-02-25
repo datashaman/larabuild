@@ -142,11 +142,11 @@ class UserMutationsTest extends PassportTestCase
     {
         $team = factory(Team::class)->create();
 
-        $this->user->teams()->attach($team);
+        $this->user->addTeam($team);
         $this->user->addRole('team-admin', $team);
 
         $user = factory(User::class)->create();
-        $user->teams()->attach($team);
+        $user->addTeam($team);
 
         $attrs = [
             'name' => $this->faker->name,
@@ -170,7 +170,7 @@ class UserMutationsTest extends PassportTestCase
         $team = factory(Team::class)->create();
 
         $user = factory(User::class)->create();
-        $user->teams()->attach($team);
+        $user->addTeam($team);
 
         $attrs = [
             'name' => $this->faker->name,
@@ -249,11 +249,11 @@ class UserMutationsTest extends PassportTestCase
     {
         $team = factory(Team::class)->create();
 
-        $this->user->teams()->attach($team);
+        $this->user->addTeam($team);
         $this->user->addRole('team-admin', $team);
 
         $user = factory(User::class)->create();
-        $user->teams()->attach($team);
+        $user->addTeam($team);
 
         $attrs = [
             'name' => $user->name,
@@ -275,7 +275,7 @@ class UserMutationsTest extends PassportTestCase
         $team = factory(Team::class)->create();
 
         $user = factory(User::class)->create();
-        $user->teams()->attach($team);
+        $user->addTeam($team);
 
         $attrs = [
             'name' => $user->name,

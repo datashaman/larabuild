@@ -152,7 +152,7 @@ class UserQueriesTest extends PassportTestCase
             ->create()
             ->each(
                 function ($team) use ($user) {
-                    $team->users()->attach($user);
+                    $team->addUser($user);
                 }
             )
             ->map(

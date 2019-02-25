@@ -152,7 +152,7 @@ class BuildQueriesTest extends PassportTestCase
         $build = factory(Build::class)->create();
         $globalId = GlobalId::encode('Build', $build->id);
 
-        $this->user->teams()->attach($build->project->team);
+        $this->user->addTeam($build->project->team);
 
         $expected = [
             'data' => [

@@ -47,7 +47,7 @@ class MyQueriesTest extends PassportTestCase
             ->create()
             ->each(
                 function ($team) {
-                    $team->users()->attach($this->user);
+                    $team->addUser($this->user);
                 }
             )
             ->map(

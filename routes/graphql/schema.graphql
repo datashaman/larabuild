@@ -36,6 +36,16 @@ type Mutation @middleware(checks: ["auth:api"]) {
         id: ID! @rules(apply: ["required"])
     ): Team
 
+    addTeamUser(
+        team_id: ID! @rules(apply: "required")
+        user_id: ID! @rules(apply: "required")
+    ): User!
+
+    removeTeamUser(
+        team_id: ID! @rules(apply: "required")
+        user_id: ID! @rules(apply: "required")
+    ): User!
+
     createUser(
         user: UserInput!
     ): User @create(flatten: true) @can(if: "create", model: "App\\Models\\User")
@@ -119,6 +129,7 @@ type User @model {
     created_at: DateTime!
     updated_at: DateTime
 
+    teams: [Team!]
     userRoles: [UserRole!]
 }
 
