@@ -21,7 +21,7 @@ class AddUserRole
     public function resolve($rootValue, array $args, GraphQLContext $context, ResolveInfo $resolveInfo)
     {
         $user = User::findOrFail($args['id']);
-        $team = $args['team_id'] ? Team::findOrFail($args['team_id']) : null;
+        $team = $args['teamId'] ? Team::findOrFail($args['teamId']) : null;
         $user->addRole($args['role'], $team);
 
         return $user;

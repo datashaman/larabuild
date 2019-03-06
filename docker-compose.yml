@@ -1,7 +1,7 @@
 #
 # Built with https://github.com/datashaman/docker-laravel
 #
-# Packages: beanstalkd google-chrome mailhog mariadb memcached redis php7.2 node11
+# Packages: beanstalkd google-chrome mailhog memcached mysql redis php7.2 node11
 #
 
 version: '3.4'
@@ -29,13 +29,13 @@ services:
       - 8025:8025
 
   db:
-    image: mariadb:10.1-bionic
+    image: mysql:5.7
     env_file: .env
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
-      - MARIADB_USER=${DB_USERNAME}
-      - MARIADB_DATABASE=${DB_DATABASE}
-      - MARIADB_PASSWORD=${DB_PASSWORD}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
     volumes:
       - mysql:/var/lib/mysql
 

@@ -10,16 +10,16 @@ type Query @middleware(checks: ["auth:api"]) {
 
     project(id: ID!): Project
     projects: [Project!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Project")
-    projectBuilds(project_id: ID!): [Build!]
+    projectBuilds(projectId: ID!): [Build!]
 
     team(id: ID!): Team
     teams: [Team!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Team")
-    teamProjects(team_id: ID! @eq): [Project!] @all
-    teamUsers(team_id: ID!): [User!]
+    teamProjects(teamId: ID!): [Project!]
+    teamUsers(teamId: ID!): [User!]
 
     user(id: ID!): User
     users: [User!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\User")
-    userTeams(user_id: ID!): [Team!]
+    userTeams(userId: ID!): [Team!]
 }
 
 type Mutation @middleware(checks: ["auth:api"]) {
@@ -37,13 +37,13 @@ type Mutation @middleware(checks: ["auth:api"]) {
     ): Team
 
     addTeamUser(
-        team_id: ID! @rules(apply: "required")
-        user_id: ID! @rules(apply: "required")
+        teamId: ID! @rules(apply: "required")
+        userId: ID! @rules(apply: "required")
     ): User!
 
     removeTeamUser(
-        team_id: ID! @rules(apply: "required")
-        user_id: ID! @rules(apply: "required")
+        teamId: ID! @rules(apply: "required")
+        userId: ID! @rules(apply: "required")
     ): User!
 
     createUser(
@@ -62,13 +62,13 @@ type Mutation @middleware(checks: ["auth:api"]) {
     addUserRole(
         id: ID! @rules(apply: ["required"])
         role: String! @rules(apply: ["required"])
-        team_id: Int
+        teamId: Int
     ): User @can(if: "addRole", model: "App\\Models\\User")
 
     removeUserRole(
         id: ID! @rules(apply: ["required"])
         role: String! @rules(apply: ["required"])
-        team_id: Int
+        teamId: Int
     ): User @can(if: "removeRole", model: "App\\Models\\User")
 
     createProject(
@@ -97,8 +97,8 @@ type Build @model {
     status: String!
     commit: String!
     output: String!
-    completed_at: DateTime
-    created_at: DateTime!
+    completedAt: DateTime @rename(attribute: "completed_at")
+    createdAt: DateTime! @rename(attribute: "created_at")
 }
 
 type Project {
@@ -106,8 +106,8 @@ type Project {
     team: Team!
     name: String!
     repository: String!
-    created_at: DateTime!
-    updated_at: DateTime
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
 
     latestBuild: Build
 }
@@ -115,8 +115,8 @@ type Project {
 type Team {
     id: ID!
     name: String!
-    created_at: DateTime!
-    updated_at: DateTime
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
 
     users: [User!]
     projects: [Project!]
@@ -126,8 +126,8 @@ type User @model {
     id: ID! @globalId
     name: String!
     email: String!
-    created_at: DateTime!
-    updated_at: DateTime
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
 
     teams: [Team!]
     userRoles: [UserRole!]
@@ -138,21 +138,21 @@ type UserRole {
     user: User!
     role: String!
     team: Team
-    created_at: DateTime!
-    updated_at: DateTime
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
 }
 
 input CreateProjectInput {
-    team_id: ID! @rules(apply: ["required"])
+    teamId: ID! @rules(apply: ["required"])
     name: String! @rules(apply: ["required"])
     repository: String! @rules(apply: ["required", "url"])
-    private_key: String! @rules(apply: ["required"])
+    privateKey: String! @rules(apply: ["required"])
 }
 
 input UpdateProjectInput {
     name: String! @rules(apply: ["required"])
     repository: String! @rules(apply: ["required", "url"])
-    private_key: String! @rules(apply: ["required"])
+    privateKey: String! @rules(apply: ["required"])
 }
 
 input TeamInput {

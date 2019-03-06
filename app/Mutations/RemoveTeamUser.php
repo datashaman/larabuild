@@ -21,10 +21,10 @@ class RemoveTeamUser
      */
     public function resolve($rootValue, array $args, GraphQLContext $context, ResolveInfo $resolveInfo)
     {
-        $team = Team::findOrFail($args['team_id']);
+        $team = Team::findOrFail($args['teamId']);
 
         if (auth()->user()->can('addUser', $team)) {
-            $user = User::findOrFail($args['user_id']);
+            $user = User::findOrFail($args['userId']);
             $team->removeUser($user);
 
             return $user->refresh();

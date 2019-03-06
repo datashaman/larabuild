@@ -127,7 +127,7 @@ The JSON response will include the team's `id`:
 
 #### Create a project
 
-Use the `id` from above in `team_id` and the content of the private key file _larabuild_ for `private_key` below to create a project:
+Use the `id` from above in `teamId` and the content of the private key file _larabuild_ for `privateKey` below to create a project:
 
     {
         "query": "
@@ -144,10 +144,10 @@ Use the `id` from above in `team_id` and the content of the private key file _la
             }
         ",
         "variables": {
-            "team_id": team_id,
+            "teamId": teamId,
             "name": "Example Project",
             "repository": "https://github.com/user/repository.git",
-            "private_key": private_key
+            "privateKey": privateKey
         }
     }
 
@@ -169,7 +169,7 @@ This will return a JSON response including the project `id`:
 
 #### Build a project
 
-We will now generate our first build.  As an admin user, you can build projects in any team. Use the `project_id` from above:
+We will now generate our first build.  As an admin user, you can build projects in any team. Use the `projectId` from above:
 
     {
         "query": "
@@ -182,7 +182,7 @@ We will now generate our first build.  As an admin user, you can build projects 
             }
         ",
         "variables": {
-            "id": project_id,
+            "id": projectId,
             "commit": "master"
         }
     }

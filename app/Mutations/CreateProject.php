@@ -22,9 +22,11 @@ class CreateProject
     public function resolve($rootValue, array $args, GraphQLContext $context, ResolveInfo $resolveInfo)
     {
         $user = auth()->user();
-        $team = Team::findOrFail(array_get($args, 'project.team_id'));
+        $team = Team::findOrFail(array_get($args, 'project.teamId'));
 
         if ($user->hasRole('admin') || $user->hasRole('team-admin', $team)) {
+            array_set($args, 'project.private_key', array_pull($args, 'project.privateKey'));
+            array_set($args, 'project.team_id', array_pull($args, 'project.teamId'));
             return Project::create($args['project']);
         }
 

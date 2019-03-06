@@ -40,7 +40,7 @@ class BuildQueriesTest extends PassportTestCase
                                 }
                                 status
                                 commit
-                                completed_at
+                                completedAt
                             }
                         }
                     }',
@@ -79,7 +79,7 @@ class BuildQueriesTest extends PassportTestCase
                         ],
                         'status' => $build->status,
                         'commit' => $build->commit,
-                        'completed_at' => $build->completed_at,
+                        'completedAt' => $build->completed_at,
                     ];
                 }
             )
@@ -126,7 +126,7 @@ class BuildQueriesTest extends PassportTestCase
                             }
                             status
                             commit
-                            completed_at
+                            completedAt
                         }
                     }",
                 ]
@@ -164,7 +164,7 @@ class BuildQueriesTest extends PassportTestCase
                     ],
                     'status' => $build->status,
                     'commit' => $build->commit,
-                    'completed_at' => $build->completed_at,
+                    'completedAt' => $build->completed_at,
                 ],
             ],
         ];

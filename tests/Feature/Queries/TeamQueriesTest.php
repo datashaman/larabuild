@@ -179,7 +179,7 @@ class TeamQueriesTest extends PassportTestCase
                 '/graphql',
                 [
                     'query' => "{
-                        teamProjects(team_id: \"{$team->id}\") {
+                        teamProjects(teamId: \"{$team->id}\") {
                             id
                             name
                             repository
@@ -226,7 +226,7 @@ class TeamQueriesTest extends PassportTestCase
                 '/graphql',
                 [
                     'query' => "{
-                        teamUsers(team_id: \"{$team->id}\") {
+                        teamUsers(teamId: \"{$team->id}\") {
                             id
                             name
                             email
