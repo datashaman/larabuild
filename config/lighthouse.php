@@ -82,7 +82,7 @@ return [
     | List directories that will be scanned for custom server-side directives.
     |
     */
-    'directives' => [__DIR__.'/../app/Http/GraphQL/Directives'],
+    'directives' => [__DIR__.'/../app/Directives'],
 
     /*
     |--------------------------------------------------------------------------
@@ -94,6 +94,7 @@ return [
     |
     */
     'namespaces' => [
+        'directives' => 'App\\Directives',
         'models' => 'App\\Models',
         'queries' => 'App\\Queries',
         'mutations' => 'App\\Mutations',

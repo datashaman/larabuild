@@ -52,4 +52,12 @@ class Project extends Model
                 ]
             );
     }
+
+    /**
+     * @return string
+     */
+    public function getPrivateKeyAttribute()
+    {
+        return decrypt($this->attributes['private_key']);
+    }
 }
