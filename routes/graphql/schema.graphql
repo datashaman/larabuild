@@ -146,13 +146,13 @@ input CreateProjectInput {
     teamId: ID! @rules(apply: ["required"])
     name: String! @rules(apply: ["required"])
     repository: String! @rules(apply: ["required", "url"])
-    privateKey: String! @rules(apply: ["required"])
+    privateKey: String! @rules(apply: ["required"]) @encrypt
 }
 
 input UpdateProjectInput {
     name: String! @rules(apply: ["required"])
     repository: String! @rules(apply: ["required", "url"])
-    privateKey: String! @rules(apply: ["required"])
+    privateKey: String! @rules(apply: ["required"]) @encrypt
 }
 
 input TeamInput {

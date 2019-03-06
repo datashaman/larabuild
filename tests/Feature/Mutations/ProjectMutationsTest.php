@@ -113,15 +113,17 @@ class ProjectMutationsTest extends PassportTestCase
             ->assertOk()
             ->assertJsonFragment($fragment);
 
-        $this->assertDatabaseHas(
-            'projects',
-            [
-                'team_id' => $attrs['teamId'],
-                'name' => $attrs['name'],
-                'repository' => $attrs['repository'],
-                'private_key' => $attrs['privateKey'],
-            ]
-        );
+        $project = Project::query()
+            ->where(
+                [
+                    'team_id' => $attrs['teamId'],
+                    'name' => $attrs['name'],
+                    'repository' => $attrs['repository'],
+                ]
+            )
+            ->firstOrFail();
+
+        $this->assertEquals($attrs['privateKey'], $project->private_key);
     }
 
     public function testCreateProjectAsTeamAdminInTeam()
@@ -163,15 +165,17 @@ class ProjectMutationsTest extends PassportTestCase
             ->assertOk()
             ->assertJsonFragment($fragment);
 
-        $this->assertDatabaseHas(
-            'projects',
-            [
-                'team_id' => $attrs['teamId'],
-                'name' => $attrs['name'],
-                'repository' => $attrs['repository'],
-                'private_key' => $attrs['privateKey'],
-            ]
-        );
+        $project = Project::query()
+            ->where(
+                [
+                    'team_id' => $attrs['teamId'],
+                    'name' => $attrs['name'],
+                    'repository' => $attrs['repository'],
+                ]
+            )
+            ->firstOrFail();
+
+        $this->assertEquals($attrs['privateKey'], $project->private_key);
     }
 
     public function testCreateProjectAsTeamAdminNotInTeam()
@@ -275,14 +279,16 @@ class ProjectMutationsTest extends PassportTestCase
             ->assertOk()
             ->assertJsonFragment($fragment);
 
-        $this->assertDatabaseHas(
-            'projects',
-            [
-                'name' => $attrs['name'],
-                'repository' => $attrs['repository'],
-                'private_key' => $attrs['privateKey'],
-            ]
-        );
+        $project = Project::query()
+            ->where(
+                [
+                    'name' => $attrs['name'],
+                    'repository' => $attrs['repository'],
+                ]
+            )
+            ->firstOrFail();
+
+        $this->assertEquals($attrs['privateKey'], $project->private_key);
     }
 
     public function testUpdateProjectAsTeamAdminInTeam()
@@ -397,7 +403,7 @@ class ProjectMutationsTest extends PassportTestCase
         $project = factory(Project::class)->create(
             [
                 'repository' => 'https://github.com/datashaman/larabuild-example.git',
-                'private_key' => $this->privateKey,
+                'private_key' => encrypt($this->privateKey),
             ]
         );
 
@@ -431,7 +437,7 @@ class ProjectMutationsTest extends PassportTestCase
         $project = factory(Project::class)->create(
             [
                 'repository' => 'https://github.com/datashaman/larabuild-example.git',
-                'private_key' => $this->privateKey,
+                'private_key' => encrypt($this->privateKey),
             ]
         );
 
