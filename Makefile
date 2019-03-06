@@ -1,7 +1,7 @@
 USER = datashaman
 PROJECT = larabuild
 REPO = https://github.com/$(USER)/$(PROJECT).git
-TAG = $(USER)/$(PROJECT):$(COMMIT)
+TAG = larabuild_app
 
 dummy:
 
@@ -24,14 +24,8 @@ docker-prune-untagged:
 
 docker-prune: docker-prune-stopped docker-prune-untagged
 
-docker-build-base:
-	docker build -f Dockerfile.base --tag $(USER)/$(PROJECT):base .
+docker-build-build: docker-build-local
+	docker build -f Dockerfile.build --tag $(TAG):build .
 
-docker-build-build:
-	docker build -f Dockerfile.build --tag $(USER)/$(PROJECT):build .
-
-docker-build-all: docker-build-base docker-build-build
-	docker build .
-
-docker-build-local: docker-build-base
-	docker build .
+docker-build-local:
+	docker build --tag $(TAG) .
