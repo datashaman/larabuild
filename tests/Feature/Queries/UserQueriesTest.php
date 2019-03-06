@@ -176,7 +176,7 @@ class UserQueriesTest extends PassportTestCase
                 '/graphql',
                 [
                     'query' => "{
-                        userTeams(user_id: \"{$user->id}\") {
+                        userTeams(userId: \"{$user->id}\") {
                             id
                             name
                         }

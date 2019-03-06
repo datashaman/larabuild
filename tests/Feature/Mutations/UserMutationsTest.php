@@ -294,15 +294,15 @@ class UserMutationsTest extends PassportTestCase
         $this->assertDatabaseHas('users', $attrs);
     }
 
-    public function postAddRole(int $id, string $role, int $team_id = null)
+    public function postAddRole(int $id, string $role, int $teamId = null)
     {
         return $this
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
-                        mutation addUserRole(\$id: ID!, \$role: String!, \$team_id: Int) {
-                            addUserRole(id: \$id, role: \$role, team_id: \$team_id) {
+                        mutation addUserRole(\$id: ID!, \$role: String!, \$teamId: Int) {
+                            addUserRole(id: \$id, role: \$role, teamId: \$teamId) {
                                 userRoles {
                                     role
                                     team {
@@ -312,7 +312,7 @@ class UserMutationsTest extends PassportTestCase
                             }
                         }
                     ",
-                    'variables' => compact('id', 'role', 'team_id'),
+                    'variables' => compact('id', 'role', 'teamId'),
                 ]
             );
     }
@@ -390,15 +390,15 @@ class UserMutationsTest extends PassportTestCase
         $this->assertTrue($user->hasRole('team-admin', $team));
     }
 
-    public function postRemoveRole(int $id, string $role, int $team_id = null)
+    public function postRemoveRole(int $id, string $role, int $teamId = null)
     {
         return $this
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
-                        mutation removeUserRole(\$id: ID!, \$role: String!, \$team_id: Int) {
-                            removeUserRole(id: \$id, role: \$role, team_id: \$team_id) {
+                        mutation removeUserRole(\$id: ID!, \$role: String!, \$teamId: Int) {
+                            removeUserRole(id: \$id, role: \$role, teamId: \$teamId) {
                                 userRoles {
                                     role
                                     team {
@@ -408,7 +408,7 @@ class UserMutationsTest extends PassportTestCase
                             }
                         }
                     ",
-                    'variables' => compact('id', 'role', 'team_id'),
+                    'variables' => compact('id', 'role', 'teamId'),
                 ]
             );
     }

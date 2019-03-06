@@ -20,7 +20,7 @@ class TeamUsers
      */
     public function resolve($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
-        return Team::findOrFail($args['team_id'])
+        return Team::findOrFail($args['teamId'])
             ->users()
             ->orderBy('name')
             ->get();

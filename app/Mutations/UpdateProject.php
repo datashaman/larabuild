@@ -24,6 +24,7 @@ class UpdateProject
         $project = Project::findOrFail($args['id']);
 
         if ($user->hasRole('admin') || $user->hasRole('team-admin', $project->team)) {
+            array_set($args, 'project.private_key', array_pull($args, 'project.privateKey'));
             $project->update($args['project']);
             return $project;
         }

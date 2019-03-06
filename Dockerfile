@@ -93,4 +93,8 @@ USER ${BUILD_USER}
 RUN composer global require hirak/prestissimo
 
 EXPOSE 9000
+
+ENV HOME=/home/${BUILD_USER}
+ENV PATH=${PATH}:${HOME}/.config/composer/vendor/bin:${HOME}/.local/bin:vendor/bin:node_modules/.bin
+
 CMD ["/usr/sbin/php-fpm7.2"]

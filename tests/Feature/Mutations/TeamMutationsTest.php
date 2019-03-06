@@ -213,22 +213,22 @@ class TeamMutationsTest extends PassportTestCase
         $this->assertDatabaseMissing('teams', $team);
     }
 
-    public function postAddTeamUser(int $team_id, int $user_id)
+    public function postAddTeamUser(int $teamId, int $userId)
     {
         return $this
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
-                        mutation addTeamUser(\$team_id: ID!, \$user_id: ID!) {
-                            addTeamUser(team_id: \$team_id, user_id: \$user_id) {
+                        mutation addTeamUser(\$teamId: ID!, \$userId: ID!) {
+                            addTeamUser(teamId: \$teamId, userId: \$userId) {
                                 teams {
                                     id
                                 }
                             }
                         }
                     ",
-                    'variables' => compact('team_id', 'user_id'),
+                    'variables' => compact('teamId', 'userId'),
                 ]
             );
     }
@@ -348,22 +348,22 @@ class TeamMutationsTest extends PassportTestCase
         );
     }
 
-    public function postRemoveTeamUser(int $team_id, int $user_id)
+    public function postRemoveTeamUser(int $teamId, int $userId)
     {
         return $this
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
-                        mutation removeTeamUser(\$team_id: ID!, \$user_id: ID!) {
-                            removeTeamUser(team_id: \$team_id, user_id: \$user_id) {
+                        mutation removeTeamUser(\$teamId: ID!, \$userId: ID!) {
+                            removeTeamUser(teamId: \$teamId, userId: \$userId) {
                                 teams {
                                     id
                                 }
                             }
                         }
                     ",
-                    'variables' => compact('team_id', 'user_id'),
+                    'variables' => compact('teamId', 'userId'),
                 ]
             );
     }

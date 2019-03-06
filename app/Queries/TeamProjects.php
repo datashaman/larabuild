@@ -2,11 +2,11 @@
 
 namespace App\Queries;
 
-use App\Models\Project;
+use App\Models\Team;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
-class ProjectBuilds
+class TeamProjects
 {
     /**
      * Return a value for the field.
@@ -20,10 +20,9 @@ class ProjectBuilds
      */
     public function resolve($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
-        return Project::findOrFail($args['projectId'])
-            ->builds()
-            ->orderBy('created_at', 'desc')
-            ->orderBy('id', 'desc')
+        return Team::findOrFail($args['teamId'])
+            ->projects()
+            ->orderBy('name')
             ->get();
     }
 }

@@ -32,13 +32,13 @@ class ProjectQueriesTest extends PassportTestCase
                                 team {
                                     id
                                     name
-                                    created_at
-                                    updated_at
+                                    createdAt
+                                    updatedAt
                                 }
                                 name
                                 repository
-                                created_at
-                                updated_at
+                                createdAt
+                                updatedAt
                             }
                         }
                     }',
@@ -72,13 +72,13 @@ class ProjectQueriesTest extends PassportTestCase
                         'team' => [
                             'id' => (string) $project->team->id,
                             'name' => $project->team->name,
-                            'created_at' => $this->formatDateTime($project->team->created_at),
-                            'updated_at' => $this->formatDateTime($project->team->updated_at),
+                            'createdAt' => $this->formatDateTime($project->team->created_at),
+                            'updatedAt' => $this->formatDateTime($project->team->updated_at),
                         ],
                         'name' => $project->name,
                         'repository' => $project->repository,
-                        'created_at' => $this->formatDateTime($project->created_at),
-                        'updated_at' => $this->formatDateTime($project->updated_at),
+                        'createdAt' => $this->formatDateTime($project->created_at),
+                        'updatedAt' => $this->formatDateTime($project->updated_at),
                     ];
                 }
             )
@@ -195,7 +195,7 @@ class ProjectQueriesTest extends PassportTestCase
                 '/graphql',
                 [
                     'query' => "{
-                        projectBuilds(project_id: \"{$project->id}\") {
+                        projectBuilds(projectId: \"{$project->id}\") {
                             id
                             commit
                         }
