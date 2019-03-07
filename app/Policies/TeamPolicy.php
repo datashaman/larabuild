@@ -65,7 +65,7 @@ class TeamPolicy extends AbstractPolicy
     public function update(User $user, Team $team)
     {
         return $this->userIsInTeam($user, $team)
-            && $user->hasRole('team-admin', $team);
+            && $user->hasRole('TEAM_ADMIN', $team);
     }
 
     /**
@@ -114,7 +114,7 @@ class TeamPolicy extends AbstractPolicy
     public function addUser(User $user, Team $team)
     {
         return $this->userIsInTeam($user, $team)
-            && $user->hasRole('team-admin', $team);
+            && $user->hasRole('TEAM_ADMIN', $team);
     }
 
     /**
@@ -127,6 +127,6 @@ class TeamPolicy extends AbstractPolicy
     public function removeUser(User $user, Team $team)
     {
         return $this->userIsInTeam($user, $team)
-            && $user->hasRole('team-admin', $team);
+            && $user->hasRole('TEAM_ADMIN', $team);
     }
 }

@@ -2,14 +2,26 @@
 
 namespace App\Models;
 
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
     /**
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * @var string
+     */
+    protected $keyType = 'string';
+
+    /**
      * @var array
      */
     protected $fillable = [
+        'id',
         'name',
         'private_key',
         'repository',
@@ -30,7 +42,9 @@ class Project extends Model
 
     public function builds()
     {
-        return $this->hasMany(Build::class);
+        return $this
+            ->hasMany(Build::class)
+            ->orderBy('number', 'desc');
     }
 
     public function getLatestBuildAttribute()
@@ -42,15 +56,24 @@ class Project extends Model
 
     /**
      * @param string $commit
+     *
+     * @return Build
      */
-    public function createBuild(string $commit)
+    public function createBuild(string $commit): Build
     {
-        return $this->builds()
-            ->create(
-                [
-                    'commit' => $commit,
-                ]
-            );
+        return DB::transaction(
+            function () use ($commit) {
+                $number = $this->builds()->max('number') ?: 0;
+
+                return $this->builds()
+                    ->create(
+                        [
+                            'commit' => $commit,
+                            'number' => $number + 1,
+                        ]
+                    );
+            }
+        );
     }
 
     /**

@@ -1,0 +1,195 @@
+type Build implements Node {
+  id: ID!
+  project: Project!
+  number: Int!
+  user: User!
+  status: String!
+  commit: String!
+  output: String!
+  completedAt: DateTime
+  createdAt: DateTime!
+}
+
+type BuildPaginator {
+  paginatorInfo: PaginatorInfo!
+  data: [Build!]!
+}
+
+input CreateProjectInput {
+  teamId: ID!
+  name: String!
+  slug: String
+  repository: String!
+  privateKey: String!
+}
+
+scalar Date
+
+scalar DateTime
+
+type Mutation {
+  createTeam(team: TeamInput!): Team
+  updateTeam(id: ID!, team: TeamInput!): Team
+  deleteTeam(id: ID!): Team
+  createUser(user: UserInput!): User
+  updateUser(id: ID!, user: UserInput!): User
+  deleteUser(id: ID!): User
+  addTeamUser(teamId: ID!, userId: ID!): User!
+  removeTeamUser(teamId: ID!, userId: ID!): User!
+  addUserRole(id: ID!, role: String!, teamId: Int): User
+  removeUserRole(id: ID!, role: String!, teamId: Int): User
+  createProject(project: CreateProjectInput!): Project
+  updateProject(id: ID!, project: UpdateProjectInput!): Project
+  deleteProject(id: ID!): Project
+  buildProject(id: ID!, commit: String!): Boolean
+}
+
+"""Node global interface"""
+interface Node {
+  """
+  Global identifier that can be used to resolve any Node implementation.
+  """
+  id: ID!
+}
+
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
+
+  """Total number of node in connection."""
+  total: Int
+
+  """Count of nodes in current request."""
+  count: Int
+
+  """Current page of request."""
+  currentPage: Int
+
+  """Last page in connection."""
+  lastPage: Int
+}
+
+type PaginatorInfo {
+  """Total count of available items in the page."""
+  count: Int!
+
+  """Current pagination page."""
+  currentPage: Int!
+
+  """Index of first item in the current page."""
+  firstItem: Int
+
+  """If collection has more pages."""
+  hasMorePages: Boolean!
+
+  """Index of last item in the current page."""
+  lastItem: Int
+
+  """Last page number of the collection."""
+  lastPage: Int!
+
+  """Number of items per page in the collection."""
+  perPage: Int!
+
+  """Total items available in the collection."""
+  total: Int!
+}
+
+type Project {
+  id: ID!
+  team: Team!
+  name: String!
+  repository: String!
+  timeout: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  builds: [Build!]!
+  latestBuild: Build
+}
+
+type ProjectPaginator {
+  paginatorInfo: PaginatorInfo!
+  data: [Project!]!
+}
+
+type Query {
+  me: User
+  team(id: ID!): Team
+  teams(count: Int!, page: Int, sortBy: String, sortDesc: Boolean): TeamPaginator
+  user(id: ID!): User
+  users(count: Int!, page: Int): UserPaginator
+  project(id: ID!): Project
+  projects(count: Int!, page: Int): ProjectPaginator
+  builds(count: Int!, page: Int): BuildPaginator
+  build(id: ID!): Build
+  node(id: ID!): Node
+}
+
+type Team {
+  id: ID!
+  name: String!
+  slug: String!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  userCount: Int!
+  users: [User!]
+  projectCount: Int!
+  projects: [Team!]
+}
+
+input TeamInput {
+  slug: String!
+  name: String!
+}
+
+type TeamPaginator {
+  paginatorInfo: PaginatorInfo!
+  data: [Team!]!
+}
+
+input UpdateProjectInput {
+  name: String!
+  slug: String
+  repository: String!
+  privateKey: String!
+}
+
+type User implements Node {
+  id: ID!
+  name: String!
+  email: String!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  teams: [Team!]
+  userRoles: [UserRole!]
+}
+
+input UserInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+type UserPaginator {
+  paginatorInfo: PaginatorInfo!
+  data: [User!]!
+}
+
+type UserRole {
+  id: ID!
+  user: User!
+  role: String!
+  team: Team
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+

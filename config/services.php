@@ -12,7 +12,11 @@ return [
     | default location for this type of information, allowing packages
     | to have a conventional place to find your various credentials.
     |
-    */
+     */
+
+    'googleAnalytics' => [
+        'trackingId' => '',
+    ],
 
     'mailgun' => [
         'domain' => env('MAILGUN_DOMAIN'),

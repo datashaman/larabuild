@@ -34,6 +34,7 @@ class UserCommand extends Command
 
         if ($user->exists) {
             $this->info('User ' . $user->email . ' created');
+            $this->info('API Token: ' . $user->api_token);
         } else {
             $this->error('User ' . $user->email . ' NOT created');
             exit(1);

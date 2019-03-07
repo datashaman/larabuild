@@ -1,0 +1,33 @@
+extend type Query @middleware(checks: ["auth:api"]) {
+    user(id: ID!): User
+    users: [User!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\User")
+}
+
+extend type Mutation @middleware(checks: ["auth:api"]) {
+    createUser(
+        user: UserInput!
+    ): User @create(flatten: true) @can(if: "create", model: "App\\Models\\User")
+
+    updateUser(
+        id: ID! @rules(apply: ["required"])
+        user: UserInput!
+    ): User
+
+    deleteUser(
+        id: ID! @rules(apply: ["required"])
+    ): User
+}
+
+type User @model {
+    id: ID! @globalId
+    name: String!
+    email: String!
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
+}
+
+input UserInput {
+    name: String! @rules(apply: ["required"])
+    email: String! @rules(apply: ["required", "email"])
+    password: String! @rules(apply: ["required", "min:6"]) @bcrypt
+}

@@ -1,0 +1,36 @@
+extend type Query @middleware(checks: ["auth:api"]) {
+    builds: [Build!]! @paginate(builder: "App\\Queries\\Builds@resolve") @can(if: "index", model: "App\\Models\\Build")
+    build(projectId: ID!, number: Int!): Build
+}
+
+extend type Mutation @middleware(checks: ["auth:api"]) {
+    buildProject(
+        id: ID! @rules(apply: ["required"])
+        commit: String! @rules(apply: ["required"])
+    ): Boolean
+}
+
+extend type Project {
+    builds: [Build!]!
+    latestBuild: Build
+}
+
+type Build {
+    id: Int!
+    project: Project!
+    number: Int!
+    user: User!
+    status: BuildStatus!
+    commit: String!
+    output: String!
+    completedAt: DateTime @rename(attribute: "completed_at")
+    createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+enum BuildStatus {
+    NEW
+    STARTED
+    FAIL
+    SUCCESS
+    NOT_FOUND
+}

@@ -4,16 +4,17 @@ namespace Tests\Feature\Mutations;
 
 use App\Models\Project;
 use App\Models\Team;
-use Tests\PassportTestCase;
+use Illuminate\Support\Str;
+use Tests\TokenTestCase;
 
-class ProjectMutationsTest extends PassportTestCase
+class ProjectMutationsTest extends TokenTestCase
 {
     /**
      * @var string
      */
     protected $privateKey;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->privateKey = trim(file_get_contents(__DIR__ . '/../../fixtures/private-key'));
@@ -22,6 +23,7 @@ class ProjectMutationsTest extends PassportTestCase
     public function postCreateProject(array $project)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -47,9 +49,12 @@ class ProjectMutationsTest extends PassportTestCase
     {
         $team = factory(Team::class)->create();
 
+        $name = $this->faker->words(3, true);
+
         $attrs = [
             'teamId' => $team->id,
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
             'repository' => 'https://github.com/datashaman/larabuild-example.git',
             'privateKey' => $this->privateKey,
         ];
@@ -76,13 +81,16 @@ class ProjectMutationsTest extends PassportTestCase
 
     public function testCreateProjectAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $team = factory(Team::class)->create();
 
+        $name = $this->faker->words(3, true);
+
         $attrs = [
             'teamId' => $team->id,
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
             'repository' => 'https://github.com/datashaman/larabuild-example.git',
             'privateKey' => $this->privateKey,
         ];
@@ -93,25 +101,15 @@ class ProjectMutationsTest extends PassportTestCase
             ->put(
                 'team',
                 [
-                    'id' => (string) $team->id,
+                    'id' => $team->id,
                     'name' => $team->name,
                 ]
-            )
-            ->map(
-                function ($value, $key) {
-                    if ($key === 'id') {
-                        return (string) $value;
-                    }
-
-                    return $value;
-                }
             )
             ->all();
 
         $this
             ->postCreateProject($attrs)
-            ->assertOk()
-            ->assertJsonFragment($fragment);
+            ->assertOk();
 
         $project = Project::query()
             ->where(
@@ -130,11 +128,14 @@ class ProjectMutationsTest extends PassportTestCase
     {
         $team = factory(Team::class)->create();
         $this->user->addTeam($team);
-        $this->user->addRole('team-admin', $team);
+        $this->user->addRole('TEAM_ADMIN', $team);
+
+        $name = $this->faker->words(3, true);
 
         $attrs = [
             'teamId' => $team->id,
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
             'repository' => 'https://github.com/datashaman/larabuild-example.git',
             'privateKey' => $this->privateKey,
         ];
@@ -162,8 +163,7 @@ class ProjectMutationsTest extends PassportTestCase
 
         $this
             ->postCreateProject($attrs)
-            ->assertOk()
-            ->assertJsonFragment($fragment);
+            ->assertOk();
 
         $project = Project::query()
             ->where(
@@ -181,11 +181,14 @@ class ProjectMutationsTest extends PassportTestCase
     public function testCreateProjectAsTeamAdminNotInTeam()
     {
         $team = factory(Team::class)->create();
-        $this->user->addRole('team-admin');
+        $this->user->addRole('TEAM_ADMIN');
+
+        $name = $this->faker->words(3, true);
 
         $attrs = [
             'teamId' => $team->id,
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
             'repository' => 'https://github.com/datashaman/larabuild-example.git',
             'privateKey' => $this->privateKey,
         ];
@@ -210,15 +213,17 @@ class ProjectMutationsTest extends PassportTestCase
         );
     }
 
-    public function postUpdateProject(int $id, array $project)
+    public function postUpdateProject(string $id, array $project)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
                         mutation updateProject(\$id: ID!, \$project: UpdateProjectInput!) {
                             updateProject(id: \$id, project: \$project) {
+                                id
                                 name
                                 repository
                             }
@@ -233,8 +238,11 @@ class ProjectMutationsTest extends PassportTestCase
     {
         $project = factory(Project::class)->create();
 
+        $name = $this->faker->words(3, true);
+
         $attrs = [
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
             'repository' => 'https://github.com/datashaman/larabuild-example.git',
             'privateKey' => $this->privateKey,
         ];
@@ -251,6 +259,7 @@ class ProjectMutationsTest extends PassportTestCase
         $this->assertDatabaseMissing(
             'projects',
             [
+                'id' => $attrs['id'],
                 'name' => $attrs['name'],
                 'repository' => $attrs['repository'],
                 'private_key' => $attrs['privateKey'],
@@ -260,12 +269,15 @@ class ProjectMutationsTest extends PassportTestCase
 
     public function testUpdateProjectAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $project = factory(Project::class)->create();
 
+        $name = $this->faker->words(3, true);
+
         $attrs = [
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
             'repository' => 'https://github.com/datashaman/larabuild-example.git',
             'privateKey' => $this->privateKey,
         ];
@@ -282,6 +294,7 @@ class ProjectMutationsTest extends PassportTestCase
         $project = Project::query()
             ->where(
                 [
+                    'id' => $attrs['id'],
                     'name' => $attrs['name'],
                     'repository' => $attrs['repository'],
                 ]
@@ -295,12 +308,15 @@ class ProjectMutationsTest extends PassportTestCase
     {
         $team = factory(Team::class)->create();
         $this->user->addTeam($team);
-        $this->user->addRole('team-admin', $team);
+        $this->user->addRole('TEAM_ADMIN', $team);
 
         $project = factory(Project::class)->create(['team_id' => $team->id]);
 
+        $name = $this->faker->words(3, true);
+
         $attrs = [
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
             'repository' => 'https://github.com/datashaman/larabuild-example.git',
             'privateKey' => $this->privateKey,
         ];
@@ -320,12 +336,15 @@ class ProjectMutationsTest extends PassportTestCase
     public function testUpdateProjectAsTeamAdminNotInTeam()
     {
         $team = factory(Team::class)->create();
-        $this->user->addRole('team-admin');
+        $this->user->addRole('TEAM_ADMIN');
 
         $project = factory(Project::class)->create(['team_id' => $team->id]);
 
+        $name = $this->faker->words(3, true);
+
         $attrs = [
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
             'repository' => 'https://github.com/datashaman/larabuild-example.git',
             'privateKey' => $this->privateKey,
         ];
@@ -342,6 +361,7 @@ class ProjectMutationsTest extends PassportTestCase
         $this->assertDatabaseMissing(
             'projects',
             [
+                'id' => $attrs['id'],
                 'name' => $attrs['name'],
                 'repository' => $attrs['repository'],
                 'private_key' => $attrs['privateKey'],
@@ -349,21 +369,16 @@ class ProjectMutationsTest extends PassportTestCase
         );
     }
 
-    public function postBuildProject(int $id, string $commit)
+    public function postBuildProject(string $id, string $commit)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
                         mutation buildProject(\$id: ID!, \$commit: String!) {
-                            buildProject(id: \$id, commit: \$commit) {
-                                id
-                                project {
-                                    id
-                                }
-                                commit
-                            }
+                            buildProject(id: \$id, commit: \$commit)
                         }
                     ",
                     'variables' => compact('id', 'commit'),
@@ -411,15 +426,7 @@ class ProjectMutationsTest extends PassportTestCase
 
         $this
             ->postBuildProject($project->id, 'master')
-            ->assertOk()
-            ->assertJsonFragment(
-                [
-                    'project' => [
-                        'id' => (string) $project->id,
-                    ],
-                    'commit' => 'master',
-                ]
-            );
+            ->assertOk();
 
         $this->assertDatabaseHas(
             'builds',
@@ -432,7 +439,7 @@ class ProjectMutationsTest extends PassportTestCase
 
     public function testBuildProjectAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $project = factory(Project::class)->create(
             [
@@ -445,15 +452,7 @@ class ProjectMutationsTest extends PassportTestCase
 
         $this
             ->postBuildProject($project->id, 'master')
-            ->assertOk()
-            ->assertJsonFragment(
-                [
-                    'project' => [
-                        'id' => (string) $project->id,
-                    ],
-                    'commit' => 'master',
-                ]
-            );
+            ->assertOk();
 
         $this->assertDatabaseHas(
             'builds',

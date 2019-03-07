@@ -5,14 +5,14 @@ return [
         'enabled' => (bool) env('LARABUILD_DOCKER', false),
     ],
     'roles' => [
-        'admin',
-        'team-admin',
+        'ADMIN',
+        'TEAM_ADMIN',
     ],
     'statuses' => [
-        'new',
-        'started',
-        'fail',
-        'success',
-        'not-found',
+        'NEW',
+        'STARTED',
+        'FAIL',
+        'SUCCESS',
+        'NOT_FOUND',
     ],
 ];

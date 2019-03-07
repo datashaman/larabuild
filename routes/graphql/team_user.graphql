@@ -1,0 +1,25 @@
+extend type Mutation @middleware(checks: ["auth:api"]) {
+    createTeamUser(
+        teamId: ID! @rules(apply: "required")
+        user: UserInput!
+    ): User!
+
+    addTeamUser(
+        teamId: ID! @rules(apply: "required")
+        userId: ID! @rules(apply: "required")
+    ): User!
+
+    removeTeamUser(
+        teamId: ID! @rules(apply: "required")
+        userId: ID! @rules(apply: "required")
+    ): User!
+}
+
+extend type Team {
+    userCount: Int!
+    users: [User!]
+}
+
+extend type User {
+    teams: [Team!]
+}

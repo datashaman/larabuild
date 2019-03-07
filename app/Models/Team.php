@@ -7,9 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class Team extends Model
 {
     /**
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * @var string
+     */
+    protected $keyType = 'string';
+
+    /**
      * @var array
      */
     protected $fillable = [
+        'id',
         'name',
     ];
 
@@ -64,5 +75,21 @@ class Team extends Model
         }
 
         return $user->refresh();
+    }
+
+    /**
+     * @return int
+     */
+    public function getProjectCountAttribute()
+    {
+        return $this->projects()->count();
+    }
+
+    /**
+     * @return int
+     */
+    public function getUserCountAttribute()
+    {
+        return $this->users()->count();
     }
 }

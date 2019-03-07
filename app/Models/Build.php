@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use File;
 use Illuminate\Database\Eloquent\Model;
 
 class Build extends Model
@@ -18,6 +19,7 @@ class Build extends Model
      */
     protected $fillable = [
         'commit',
+        'number',
     ];
 
     public function project()
@@ -28,5 +30,13 @@ class Build extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return string
+     */
+    public function getWorkingFolder()
+    {
+        return storage_path("app/workspace/{$this->project->id}/{$this->number}");
     }
 }

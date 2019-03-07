@@ -1,0 +1,63 @@
+kind: pipeline
+name: default
+
+clone:
+  depth: 3
+
+steps:
+  - name: restore-cache
+    image: drillster/drone-volume-cache
+    privileged: true
+    settings:
+      mount:
+        - vendor
+      restore: true
+    volumes:
+      - name: cache
+        path: /cache
+
+  - name: build
+    image: datashaman/composer
+    commands:
+      - composer install
+      - php artisan migrate --seed --env=testing
+    environment:
+      DB_DATABASE: larabuild_drone
+      DB_HOST: db
+      DB_PASSWORD: secret
+      DB_USERNAME: larabuild
+
+  - name: test
+    image: datashaman/composer
+    commands:
+      - vendor/bin/phpunit
+    environment:
+      DB_DATABASE: larabuild_drone
+      DB_HOST: db
+      DB_PASSWORD: secret
+      DB_USERNAME: larabuild
+
+  - name: build-cache
+    image: drillster/drone-volume-cache
+    privileged: true
+    settings:
+      mount:
+        - vendor
+      rebuild: true
+    volumes:
+      - name: cache
+        path: /cache
+
+services:
+  - name: db
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: larabuild_drone
+      MYSQL_PASSWORD: secret
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+      MYSQL_USER: larabuild
+
+volumes:
+  - name: cache
+    host:
+      path: /var/lib/cache

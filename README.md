@@ -41,13 +41,9 @@ Migrate the database (optionally seed with demo data):
 
     php artisan migrate
 
-Generate Passport keys:
-
-    php artisan passport:keys
-
 Create an admin user:
 
-    php artisan larabuild:user name email password --roles=admin
+    php artisan larabuild:user name email password --roles=ADMIN
 
 Generate a Bearer access token:
 
@@ -214,13 +210,13 @@ Regular users (no role)
 - can view their teams, projects and builds
 - can build projects in their teams
 
-Team admin users (`team-admin` role)
+Team admin users (`TEAM_ADMIN` role)
 
 - can update the team
 - can create, update and delete projects
 - can create and update users
 
-Admin users (`admin` role)
+Admin users (`ADMIN` role)
 
 - can access everything
 - can add and remove roles from users

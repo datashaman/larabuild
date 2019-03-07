@@ -6,10 +6,9 @@ use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\TestResponse;
-use Nuwave\Lighthouse\Execution\Utils\GlobalId;
-use Tests\PassportTestCase;
+use Tests\TokenTestCase;
 
-class TeamQueriesTest extends PassportTestCase
+class TeamQueriesTest extends TokenTestCase
 {
     /**
      * @return TestResponse
@@ -17,6 +16,7 @@ class TeamQueriesTest extends PassportTestCase
     protected function postTeamsQuery()
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -52,19 +52,23 @@ class TeamQueriesTest extends PassportTestCase
 
     public function testTeamsQueryAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $teams = factory(Team::class, 12)
             ->create()
+            ->sortBy(function ($team) {
+                return $team->name;
+            })
             ->take(10)
             ->map(
                 function ($team) {
                     return [
-                        'id' => (string) $team->id,
+                        'id' => $team->id,
                         'name' => $team->name,
                     ];
                 }
             )
+            ->values()
             ->all();
 
         $expected = [
@@ -90,11 +94,12 @@ class TeamQueriesTest extends PassportTestCase
     protected function postTeamQuery($id)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
                     'query' => "{
-                        team(id: {$id}) {
+                        team(id: \"{$id}\") {
                             id
                             name
                         }
@@ -110,7 +115,7 @@ class TeamQueriesTest extends PassportTestCase
         $expected = [
             'data' => [
                 'team' => [
-                    'id' => (string) $team->id,
+                    'id' => $team->id,
                     'name' => $team->name,
                 ],
             ],
@@ -134,7 +139,7 @@ class TeamQueriesTest extends PassportTestCase
         $expected = [
             'data' => [
                 'team' => [
-                    'id' => (string) $team->id,
+                    'id' => $team->id,
                     'name' => $team->name,
                 ],
             ],
@@ -142,98 +147,6 @@ class TeamQueriesTest extends PassportTestCase
 
         $this
             ->postTeamQuery($team->id)
-            ->assertStatus(200)
-            ->assertExactJson($expected);
-    }
-
-    public function testTeamProjectsQuery()
-    {
-        $otherProject = factory(Project::class);
-        $team = factory(Team::class)->create();
-
-        $teamProjects = factory(Project::class, 3)
-            ->create(
-                [
-                    'team_id' => $team->id,
-                ]
-            )
-            ->map(
-                function ($project) {
-                    return [
-                        'id' => (string) $project->id,
-                        'name' => $project->name,
-                        'repository' => $project->repository,
-                    ];
-                }
-            )
-            ->all();
-
-        $expected = [
-            'data' => [
-                'teamProjects' => $teamProjects,
-            ],
-        ];
-
-        $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => "{
-                        teamProjects(teamId: \"{$team->id}\") {
-                            id
-                            name
-                            repository
-                        }
-                    }",
-                ]
-            )
-            ->assertStatus(200)
-            ->assertExactJson($expected);
-    }
-
-    public function testTeamUsersQuery()
-    {
-        $team = factory(Team::class)->create();
-
-        $otherUser = factory(User::class);
-
-        $teamUsers = factory(User::class, 3)
-            ->create()
-            ->each(
-                function ($user) use ($team) {
-                    $user->addTeam($team);
-                }
-            )
-            ->map(
-                function ($user) {
-                    return [
-                        'id' => GlobalId::encode('User', $user->id),
-                        'name' => $user->name,
-                        'email' => $user->email,
-                    ];
-                }
-            )
-            ->all();
-
-        $expected = [
-            'data' => [
-                'teamUsers' => $teamUsers,
-            ],
-        ];
-
-        $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => "{
-                        teamUsers(teamId: \"{$team->id}\") {
-                            id
-                            name
-                            email
-                        }
-                    }",
-                ]
-            )
             ->assertStatus(200)
             ->assertExactJson($expected);
     }

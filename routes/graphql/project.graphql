@@ -1,0 +1,49 @@
+extend type Query @middleware(checks: ["auth:api"]) {
+    project(id: ID!): Project
+    projects: [Project!]! @paginate(type: "paginator") @can(if: "index", model: "App\\Models\\Project")
+}
+
+extend type Mutation @middleware(checks: ["auth:api"]) {
+    createProject(
+        project: CreateProjectInput!
+    ): Project @can(if: "create", model: "App\\Models\\Project")
+
+    updateProject(
+        id: ID! @rules(apply: ["required"])
+        project: UpdateProjectInput!
+    ): Project
+
+    deleteProject(
+        id: ID! @rules(apply: ["required"])
+    ): Project
+}
+
+extend type Team {
+    projectCount: Int!
+    projects: [Team!]
+}
+
+type Project {
+    id: ID!
+    team: Team!
+    name: String!
+    repository: String!
+    timeout: Int!
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
+}
+
+input CreateProjectInput {
+    id: ID! @rules(apply: ["required", "min:6", "alpha_dash"])
+    teamId: ID! @rules(apply: ["required"])
+    name: String! @rules(apply: ["required", "min:6"])
+    repository: String! @rules(apply: ["required", "url"])
+    privateKey: String! @rules(apply: ["required"]) @encrypt
+}
+
+input UpdateProjectInput {
+    id: ID! @rules(apply: ["required", "min:6", "alpha_dash"])
+    name: String! @rules(apply: ["required", "min:6"])
+    repository: String! @rules(apply: ["required", "url"])
+    privateKey: String! @rules(apply: ["required"]) @encrypt
+}
