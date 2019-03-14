@@ -4,6 +4,6 @@ workflow "New workflow" {
 }
 
 action "pxgamer/composer-action" {
-  uses = "pxgamer/composer-action"
+  uses = "pxgamer/composer-action@master"
   args = "install"
 }
