@@ -148,6 +148,7 @@ class BuildProject implements ShouldQueue
                         $execConfig->setWorkingDir('/workspace');
                         $execConfig->setCmd($command);
 
+                        $client->containerResume($containerId);
                         $execId = $client->containerExec($containerId, $execConfig)->getId();
 
                         $execStartConfig = app(ExecIdStartPostBody::class);
