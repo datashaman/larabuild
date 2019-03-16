@@ -132,7 +132,13 @@ class BuildProject implements ShouldQueue
 
             $client->containerStart($containerId);
 
-            $outputFile = fopen("$workingFolder/output.txt", "a");
+            $outputFile = $build->getOutputFile();
+
+            if (!is_dir(basename($outputFile))) {
+                File::makeDirectory(basename($outputFile), 0755, true);
+            }
+
+            $outputFile = fopen($outputFile, "a");
 
             collect($install)
                 ->each(
@@ -172,13 +178,20 @@ class BuildProject implements ShouldQueue
             fclose($outputFile);
 
             $client->containerStop($containerId);
+            $client->containerDelete($containerId, ['force' => true]);
         } else {
             Log::debug('Local build');
 
             $cwd = getcwd();
             chdir($workingFolder);
 
-            $outputFile = fopen("$workingFolder/output.txt", "a");
+            $outputFile = $build->getOutputFile();
+
+            if (!is_dir(basename($outputFile))) {
+                File::makeDirectory(basename($outputFile), 0755, true);
+            }
+
+            $outputFile = fopen($outputFile, "a");
 
             collect($install)
                 ->each(

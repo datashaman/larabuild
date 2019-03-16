@@ -2,7 +2,3 @@ docker: true
 
 install:
   - ['composer', 'install']
-  - ['cp', '.env.testing', '.env']
-  - ['php', 'artisan', 'config:clear']
-  - ['php', 'artisan', 'cache:clear']
-  - ['vendor/bin/phpunit']
