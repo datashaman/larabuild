@@ -177,8 +177,9 @@ class BuildProject implements ShouldQueue
 
             fclose($outputFile);
 
-            $client->containerStop($containerId);
-            $client->containerDelete($containerId, ['force' => true]);
+            $client->containerKill($containerId, [
+                'signal' => 'SIGKILL',
+            ]);
         } else {
             Log::debug('Local build');
 
