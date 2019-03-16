@@ -4,6 +4,7 @@ Homestead.json
 Homestead.yaml
 /node_modules
 npm-debug.log
+/laravel-echo-server.json
 /laravel-echo-server.lock
 php_errors.log
 .phpunit.result.cache
