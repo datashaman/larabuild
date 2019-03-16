@@ -112,10 +112,16 @@ class BuildProject implements ShouldQueue
 
             $client = app(Docker::class);
 
-            $hostConfig = new HostConfig();
-            $hostConfig->setBinds(["$workingFolder:/app"]);
+            $mount = app(Mount::class);
+            $mount->setTarget('/tmp/cache');
+            $mount->setSource('/tmp/cache');
+            $mount->setType('bind');
 
-            $containerConfig = new ContainersCreatePostBody();
+            $hostConfig = app(HostConfig::class);
+            $hostConfig->setBinds(["$workingFolder:/app"]);
+            $hostConfig->setMounts([$mount]);
+
+            $containerConfig = app(ContainersCreatePostBody::class);
             $containerConfig->setHostConfig($hostConfig);
             $containerConfig->setImage('datashaman/composer:latest');
             $containerConfig->setCmd(['bash']);
@@ -131,7 +137,7 @@ class BuildProject implements ShouldQueue
             collect($install)
                 ->each(
                     function ($command) use ($build, $client, $containerId, &$output, $outputFile) {
-                        $execConfig = new ContainersIdExecPostBody();
+                        $execConfig = app(ContainersIdExecPostBody::class);
                         $execConfig->setAttachStderr(true);
                         $execConfig->setAttachStdout(true);
                         $execConfig->setWorkingDir('/app');
@@ -139,7 +145,7 @@ class BuildProject implements ShouldQueue
 
                         $execId = $client->containerExec($containerId, $execConfig)->getId();
 
-                        $execStartConfig = new ExecIdStartPostBody();
+                        $execStartConfig = app(ExecIdStartPostBody::class);
                         $execStartConfig->setDetach(false);
 
                         $stream = $client->execStart($execId, $execStartConfig);
@@ -179,7 +185,7 @@ class BuildProject implements ShouldQueue
                     function ($command) use ($build, &$output, $outputFile) {
                         Log::debug('Executing command', compact('command'));
 
-                        $process = new Process($command);
+                        $process = app(Process::class, $command);
                         $process->setTimeout($this->project->timeout);
 
                         try {

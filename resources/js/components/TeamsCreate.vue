@@ -1,11 +1,22 @@
 <template>
     <b-form @submit.prevent="onSubmit" @reset.prevent="onReset" v-if="show">
         <b-form-group
-            label="Name"
-            label-for="name"
+            label="ID"
+            label-for="team-id"
         >
             <b-form-input
-                id="name"
+                id="team-id"
+                type="text"
+                v-model="form.id"
+                required />
+        </b-form-group>
+
+        <b-form-group
+            label="Name"
+            label-for="team-name"
+        >
+            <b-form-input
+                id="team-name"
                 type="text"
                 v-model="form.name"
                 required />
@@ -24,6 +35,7 @@ export default {
     data() {
         return {
             form: {
+                id: '',
                 name: '',
             },
             show: true,
@@ -43,6 +55,7 @@ export default {
                     },
                 }],
             }).then((data) => {
+                this.form.id = ''
                 this.form.name = ''
                 this.$emit('success', data)
             }).catch((err) => {
@@ -50,6 +63,7 @@ export default {
             })
         },
         onReset(evt) {
+            this.form.id = ''
             this.form.name = ''
             this.show = false
             this.$nextTick(() => {
