@@ -1,0 +1,2 @@
+symfony/contracts suggests installing psr/cache (When using the Cache contracts)
+symfony/contracts suggests installing symfony/cache-contracts-implementation

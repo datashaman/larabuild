@@ -1,5 +1,5 @@
 docker: true
 
 install:
-  - ['composer', 'install']
-  - ['yarn', 'install']
+  - ['composer', 'install', '--no-ansi']
+  - ['yarn', 'install', '--no-progress']
