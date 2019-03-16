@@ -3,20 +3,14 @@
 Route::any('github/{project}', 'GithubController')
     ->name('github');
 
-Route::get('auth/me', function () {
-    return auth()->user();
-})
+Route::get('auth/me', 'AuthController@me')
     ->middleware('auth')
     ->name('auth.me');
 
 Route::post('login', 'Auth\LoginController@login')
     ->name('login');
 
-Route::get('logout', function () {
-    auth()->logout();
-});
-
-Route::post('logout', 'Auth\LoginController@logout')
+Route::any('logout', 'Auth\LoginController@logout')
     ->name('logout');
 
 Route::post('password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail')
@@ -29,6 +23,4 @@ Route::get('{team}/{project}/{number}/console', 'ConsoleController')
     ->name('builds.console')
     ->middleware('disableBuffer');
 
-Route::fallback(function() {
-    return view('page');
-});
+Route::fallback('PageController');

@@ -1,5 +1,5 @@
 DOCKER_COMPOSE_TESTING = docker-compose -p larabuild_testing -f docker-compose.testing.yml
-TAG = larabuild_app
+TAG = datashaman/larabuild
 
 dummy:
 
