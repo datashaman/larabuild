@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Build;
 use App\Models\Project;
-use Docker\API\Model\ContainerExec;
 use Docker\API\Model\ContainersCreatePostBody;
 use Docker\API\Model\ContainersIdExecPostBody;
 use Docker\API\Model\ExecIdStartPostBody;
@@ -68,8 +67,6 @@ class BuildProject implements ShouldQueue
         $workingFolder = $build->getWorkingFolder();
         Log::debug("Working Folder", compact('workingFolder'));
 
-        $cwd = getcwd();
-
         $build->status = 'CHECKOUT';
         $build->save();
 
@@ -78,6 +75,8 @@ class BuildProject implements ShouldQueue
         }
 
         File::makeDirectory($workingFolder, 0770, true, true);
+
+        $cwd = getcwd();
         chdir($workingFolder);
 
         $repo = $wrapper->cloneRepository($this->project->repository, $workingFolder);
@@ -112,14 +111,16 @@ class BuildProject implements ShouldQueue
 
             $client = app(Docker::class);
 
+            $hostConfig = app(HostConfig::class);
+            $hostConfig->setBinds(["$workingFolder:/workspace"]);
+
+            /*
             $mount = app(Mount::class);
             $mount->setTarget('/tmp/cache');
             $mount->setSource('/tmp/cache');
             $mount->setType('bind');
-
-            $hostConfig = app(HostConfig::class);
-            $hostConfig->setBinds(["$workingFolder:/app"]);
             $hostConfig->setMounts([$mount]);
+            */
 
             $containerConfig = app(ContainersCreatePostBody::class);
             $containerConfig->setHostConfig($hostConfig);
@@ -133,10 +134,8 @@ class BuildProject implements ShouldQueue
             $client->containerStart($containerId);
 
             $outputFile = $build->getOutputFile();
-
-            if (!is_dir(basename($outputFile))) {
-                File::makeDirectory(basename($outputFile), 0755, true);
-            }
+            $dir = dirname($outputFile);
+            File::makeDirectory($dir, 0755, true, true);
 
             $outputFile = fopen($outputFile, "a");
 
@@ -146,7 +145,7 @@ class BuildProject implements ShouldQueue
                         $execConfig = app(ContainersIdExecPostBody::class);
                         $execConfig->setAttachStderr(true);
                         $execConfig->setAttachStdout(true);
-                        $execConfig->setWorkingDir('/app');
+                        $execConfig->setWorkingDir('/workspace');
                         $execConfig->setCmd($command);
 
                         $execId = $client->containerExec($containerId, $execConfig)->getId();
@@ -158,20 +157,21 @@ class BuildProject implements ShouldQueue
 
                         $stream->onStdout(
                             function ($buffer) use (&$output, $outputFile) {
-                                $output .= date('H:i:s') . ' ' . $buffer;
+                                $buffer = date('H:i:s') . ' ' . $buffer;
                                 fwrite($outputFile, $buffer);
+                                $output .= $buffer;
                             }
                         );
 
                         $stream->onStderr(
-                            function ($buffer) use ($build, &$output, $outputFile) {
-                                $output .= $buffer;
+                            function ($buffer) use (&$output, $outputFile) {
+                                $buffer = date('H:i:s') . ' ' . $buffer;
                                 fwrite($outputFile, $buffer);
+                                $output .= $buffer;
                             }
                         );
 
-                        $response = $stream->wait();
-                        Log::debug("Response", compact('response'));
+                        $stream->wait();
                     }
                 );
 
@@ -187,9 +187,8 @@ class BuildProject implements ShouldQueue
 
             $outputFile = $build->getOutputFile();
 
-            if (!is_dir(basename($outputFile))) {
-                File::makeDirectory(basename($outputFile), 0755, true);
-            }
+            $dir = dirname($outputFile);
+            File::makeDirectory($dir, 0755, true, true);
 
             $outputFile = fopen($outputFile, "a");
 
@@ -217,8 +216,6 @@ class BuildProject implements ShouldQueue
                 );
 
             fclose($outputFile);
-
-            chdir($cwd);
         }
 
         $build->output = $output;
