@@ -24,7 +24,7 @@
                                 <b-link v-if="data.item.status !== 'new'" :href="'/' + project.team.id + '/' + project.id + '/' + data.item.number + '/console'">console</b-link>
                             </template>
                             <template slot="duration" slot-scope="data">
-                                {{ data.item.completedAt ? (parseInt((new Date(data.item.completedAt) - new Date(data.item.createdAt))/1000)) : '' }}
+                                {{ renderDuration(data.item) }}
                             </template>
                         </b-table>
                         <p v-else>No builds.</p>
@@ -146,6 +146,21 @@ export default {
             })
         },
         buildSortChanged() {
+        },
+        renderDuration(item) {
+            if (item.completedAt) {
+                const seconds = parseInt((new Date(item.completedAt) - new Date(item.createdAt)) / 1000)
+
+                var h = Math.floor(seconds / 3600);
+                var m = Math.floor(seconds % 3600 / 60);
+                var s = Math.floor(seconds % 3600 % 60);
+
+                var hDisplay = h > 0 ? h + "h, " : '';
+                var mDisplay = m > 0 ? m + "m, " : '';
+                var sDisplay = s > 0 ? s + "s" : '';
+
+                return hDisplay + mDisplay + sDisplay;
+            }
         },
     },
 }
