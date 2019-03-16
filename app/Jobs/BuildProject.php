@@ -123,7 +123,7 @@ class BuildProject implements ShouldQueue
 
             $containerConfig = app(ContainersCreatePostBody::class);
             $containerConfig->setHostConfig($hostConfig);
-            $containerConfig->setImage('datashaman/composer:latest');
+            $containerConfig->setImage('datashaman/larabuild-worker:latest');
             $containerConfig->setCmd(['bash']);
             $containerConfig->setTty(true);
 
