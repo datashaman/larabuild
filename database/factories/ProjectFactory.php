@@ -11,6 +11,7 @@ $factory->define(App\Models\Project::class, function (Faker $faker, array $overr
         'team_id' => factory(App\Models\Team::class)->create()->id,
         'name' => $name,
         'repository' => 'https://github.com/' . $faker->username . '/' . $faker->domainWord,
+        'secret' => Str::random(32),
         'private_key' => encrypt('private key'),
         'timeout' => 3600,
     ];

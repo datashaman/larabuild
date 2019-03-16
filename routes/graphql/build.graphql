@@ -29,8 +29,9 @@ type Build {
 
 enum BuildStatus {
     NEW
-    STARTED
-    FAIL
-    SUCCESS
+    CHECKOUT
+    BUILDING
+    FAILED
+    OK
     NOT_FOUND
 }

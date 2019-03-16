@@ -10,9 +10,10 @@ return [
     ],
     'statuses' => [
         'NEW',
-        'STARTED',
-        'FAIL',
-        'SUCCESS',
+        'CHECKOUT',
+        'BUILDING',
+        'FAILED',
+        'OK',
         'NOT_FOUND',
     ],
 ];

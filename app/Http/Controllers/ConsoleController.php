@@ -21,14 +21,18 @@ class ConsoleController extends Controller
      *
      * @return Response
      */
-    public function __invoke(Request $request, Team $team, Project $project, Build $build)
+    public function __invoke(Request $request, Team $team, Project $project, string $number)
     {
+        $build = $project->builds()
+            ->where('number', $number)
+            ->firstOrFail();
+
         $workingFolder = $build->getWorkingFolder();
         $outputFile = "$workingFolder/output.txt";
 
         return response()
             ->stream(function () use ($build, $outputFile) {
-                if ($build->status === 'STARTED') {
+                if ($build->status === 'BUILDING') {
                     $process = new Process(['tail', '-f', $outputFile]);
 
                     $process->run(
@@ -38,7 +42,7 @@ class ConsoleController extends Controller
 
                             $build->refresh();
 
-                            if ($build->status !== 'STARTED') {
+                            if ($build->status !== 'BUILDING') {
                                 $process->kill(SIGKILL);
                             }
                         }

@@ -24,7 +24,7 @@
                                 <b-link v-if="data.item.status !== 'new'" :href="'/' + project.team.id + '/' + project.id + '/' + data.item.number + '/console'">console</b-link>
                             </template>
                             <template slot="duration" slot-scope="data">
-                                {{ parseInt((new Date(data.item.completedAt) - new Date(data.item.createdAt))/1000) }}
+                                {{ data.item.completedAt ? (parseInt((new Date(data.item.completedAt) - new Date(data.item.createdAt))/1000)) : '' }}
                             </template>
                         </b-table>
                         <p v-else>No builds.</p>

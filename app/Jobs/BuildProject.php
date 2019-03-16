@@ -63,23 +63,24 @@ class BuildProject implements ShouldQueue
         unlink($filename);
 
         $build = $this->project->createBuild($this->commit);
+        Log::debug("Build", compact('build'));
 
         $workingFolder = $build->getWorkingFolder();
         Log::debug("Working Folder", compact('workingFolder'));
 
         $cwd = getcwd();
 
+        $build->status = 'CHECKOUT';
+        $build->save();
+
         if (File::isDirectory($workingFolder)) {
-            chdir($workingFolder);
-            $repo = $wrapper->workingCopy($workingFolder);
-        } else {
-            File::makeDirectory($workingFolder, 0770, true, true);
-            chdir($workingFolder);
-            $repo = $wrapper->cloneRepository($this->project->repository, $workingFolder);
+            File::deleteDirectory($workingFolder);
         }
 
-        $repo->reset(['hard' => true]);
-        $repo->clean(['force' => true, 'd' => true]);
+        File::makeDirectory($workingFolder, 0770, true, true);
+        chdir($workingFolder);
+
+        $repo = $wrapper->cloneRepository($this->project->repository, $workingFolder);
         $repo->checkout($this->commit);
 
         $filename = "$workingFolder/.larabuild.yml";
@@ -99,7 +100,7 @@ class BuildProject implements ShouldQueue
             $install = [$install];
         }
 
-        $build->status = 'STARTED';
+        $build->status = 'BUILDING';
         $build->save();
 
         $output = '';
@@ -116,7 +117,7 @@ class BuildProject implements ShouldQueue
 
             $containerConfig = new ContainersCreatePostBody();
             $containerConfig->setHostConfig($hostConfig);
-            $containerConfig->setImage('ubuntu:latest');
+            $containerConfig->setImage('datashaman/composer:latest');
             $containerConfig->setCmd(['bash']);
             $containerConfig->setTty(true);
 
@@ -125,9 +126,11 @@ class BuildProject implements ShouldQueue
 
             $client->containerStart($containerId);
 
+            $outputFile = fopen("$workingFolder/output.txt", "a");
+
             collect($install)
                 ->each(
-                    function ($command) use ($build, $client, $containerId, &$output) {
+                    function ($command) use ($build, $client, $containerId, &$output, $outputFile) {
                         $execConfig = new ContainersIdExecPostBody();
                         $execConfig->setAttachStderr(true);
                         $execConfig->setAttachStdout(true);
@@ -142,24 +145,25 @@ class BuildProject implements ShouldQueue
                         $stream = $client->execStart($execId, $execStartConfig);
 
                         $stream->onStdout(
-                            function ($buffer) use (&$output) {
+                            function ($buffer) use (&$output, $outputFile) {
                                 $output .= date('H:i:s') . ' ' . $buffer;
+                                fwrite($outputFile, $buffer);
                             }
                         );
 
                         $stream->onStderr(
-                            function ($buffer) use (&$output) {
-                                Log::debug('Stderr', compact('buffer'));
+                            function ($buffer) use ($build, &$output, $outputFile) {
                                 $output .= $buffer;
-
-                                $build->status = 'FAIL';
-                                $build->save();
+                                fwrite($outputFile, $buffer);
                             }
                         );
 
-                        $stream->wait();
+                        $response = $stream->wait();
+                        Log::debug("Response", compact('response'));
                     }
                 );
+
+            fclose($outputFile);
 
             $client->containerStop($containerId);
         } else {
@@ -187,7 +191,7 @@ class BuildProject implements ShouldQueue
                                 }
                             );
                         } catch (ProcessFailedException $exception) {
-                            $build->status = 'FAIL';
+                            $build->status = 'FAILED';
                             return false;
                         }
                     }
@@ -200,8 +204,8 @@ class BuildProject implements ShouldQueue
 
         $build->output = $output;
 
-        if ($build->status !== 'FAIL') {
-            $build->status = 'SUCCESS';
+        if ($build->status !== 'FAILED') {
+            $build->status = 'OK';
         }
 
         $build->completed_at = Carbon::now();
