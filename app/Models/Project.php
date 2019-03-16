@@ -83,4 +83,20 @@ class Project extends Model
     {
         return decrypt($this->attributes['private_key']);
     }
+
+    /**
+     * @return string
+     */
+    public function getNpmCache()
+    {
+        return storage_path("app/cache/{$this->id}/npm");
+    }
+
+    /**
+     * @return string
+     */
+    public function getComposerCache()
+    {
+        return storage_path("app/cache/{$this->id}/composer");
+    }
 }
