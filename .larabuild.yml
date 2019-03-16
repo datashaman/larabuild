@@ -2,3 +2,4 @@ docker: true
 
 install:
   - ['composer', 'install']
+  - ['yarn', 'install']
