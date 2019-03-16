@@ -35,6 +35,14 @@ class Build extends Model
     /**
      * @return string
      */
+    public function getOutputFile()
+    {
+        return storage_path("app/output/{$this->project->id}/{$this->number}.txt");
+    }
+
+    /**
+     * @return string
+     */
     public function getWorkingFolder()
     {
         return storage_path("app/workspace/{$this->project->id}/{$this->number}");

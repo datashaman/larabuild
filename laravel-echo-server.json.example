@@ -1,16 +1,11 @@
 {
-    "authHost": "http://larabuild.test",
+    "authHost": "http://example.com",
     "authEndpoint": "/broadcasting/auth",
     "clients": [
-        {
-            "appId": "f34b047f073953f2",
-            "key": "a3b023f56e4c33c369b529141e5eb21c"
-        }
     ],
     "database": "redis",
     "databaseConfig": {
         "redis": {
-            "password": "phoh9ceeKi"
         },
         "sqlite": {
             "databasePath": "/database/laravel-echo-server.sqlite"

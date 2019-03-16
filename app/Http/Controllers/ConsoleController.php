@@ -27,8 +27,7 @@ class ConsoleController extends Controller
             ->where('number', $number)
             ->firstOrFail();
 
-        $workingFolder = $build->getWorkingFolder();
-        $outputFile = "$workingFolder/output.txt";
+        $outputFile = $build->getOutputFile();
 
         return response()
             ->stream(function () use ($build, $outputFile) {

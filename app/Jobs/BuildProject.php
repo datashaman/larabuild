@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Build;
 use App\Models\Project;
-use Docker\API\Model\ContainerExec;
 use Docker\API\Model\ContainersCreatePostBody;
 use Docker\API\Model\ContainersIdExecPostBody;
 use Docker\API\Model\ExecIdStartPostBody;
@@ -68,8 +67,6 @@ class BuildProject implements ShouldQueue
         $workingFolder = $build->getWorkingFolder();
         Log::debug("Working Folder", compact('workingFolder'));
 
-        $cwd = getcwd();
-
         $build->status = 'CHECKOUT';
         $build->save();
 
@@ -78,6 +75,8 @@ class BuildProject implements ShouldQueue
         }
 
         File::makeDirectory($workingFolder, 0770, true, true);
+
+        $cwd = getcwd();
         chdir($workingFolder);
 
         $repo = $wrapper->cloneRepository($this->project->repository, $workingFolder);
@@ -112,12 +111,20 @@ class BuildProject implements ShouldQueue
 
             $client = app(Docker::class);
 
-            $hostConfig = new HostConfig();
-            $hostConfig->setBinds(["$workingFolder:/app"]);
+            $hostConfig = app(HostConfig::class);
+            $hostConfig->setBinds(["$workingFolder:/workspace"]);
 
-            $containerConfig = new ContainersCreatePostBody();
+            /*
+            $mount = app(Mount::class);
+            $mount->setTarget('/tmp/cache');
+            $mount->setSource('/tmp/cache');
+            $mount->setType('bind');
+            $hostConfig->setMounts([$mount]);
+            */
+
+            $containerConfig = app(ContainersCreatePostBody::class);
             $containerConfig->setHostConfig($hostConfig);
-            $containerConfig->setImage('datashaman/composer:latest');
+            $containerConfig->setImage('datashaman/larabuild-worker:latest');
             $containerConfig->setCmd(['bash']);
             $containerConfig->setTty(true);
 
@@ -126,60 +133,72 @@ class BuildProject implements ShouldQueue
 
             $client->containerStart($containerId);
 
-            $outputFile = fopen("$workingFolder/output.txt", "a");
+            $outputFile = $build->getOutputFile();
+            $dir = dirname($outputFile);
+            File::makeDirectory($dir, 0755, true, true);
+
+            $outputFile = fopen($outputFile, "a");
 
             collect($install)
                 ->each(
                     function ($command) use ($build, $client, $containerId, &$output, $outputFile) {
-                        $execConfig = new ContainersIdExecPostBody();
+                        $execConfig = app(ContainersIdExecPostBody::class);
                         $execConfig->setAttachStderr(true);
                         $execConfig->setAttachStdout(true);
-                        $execConfig->setWorkingDir('/app');
+                        $execConfig->setWorkingDir('/workspace');
                         $execConfig->setCmd($command);
 
                         $execId = $client->containerExec($containerId, $execConfig)->getId();
 
-                        $execStartConfig = new ExecIdStartPostBody();
+                        $execStartConfig = app(ExecIdStartPostBody::class);
                         $execStartConfig->setDetach(false);
 
                         $stream = $client->execStart($execId, $execStartConfig);
 
                         $stream->onStdout(
                             function ($buffer) use (&$output, $outputFile) {
-                                $output .= date('H:i:s') . ' ' . $buffer;
+                                $buffer = date('H:i:s') . ' ' . $buffer;
                                 fwrite($outputFile, $buffer);
+                                $output .= $buffer;
                             }
                         );
 
                         $stream->onStderr(
-                            function ($buffer) use ($build, &$output, $outputFile) {
-                                $output .= $buffer;
+                            function ($buffer) use (&$output, $outputFile) {
+                                $buffer = date('H:i:s') . ' ' . $buffer;
                                 fwrite($outputFile, $buffer);
+                                $output .= $buffer;
                             }
                         );
 
-                        $response = $stream->wait();
-                        Log::debug("Response", compact('response'));
+                        $stream->wait();
                     }
                 );
 
             fclose($outputFile);
 
-            $client->containerStop($containerId);
+            $client->containerKill($containerId, [
+                'signal' => 'SIGKILL',
+            ]);
         } else {
             Log::debug('Local build');
 
             $cwd = getcwd();
             chdir($workingFolder);
 
-            $outputFile = fopen("$workingFolder/output.txt", "a");
+            $outputFile = $build->getOutputFile();
+
+            $dir = dirname($outputFile);
+            File::makeDirectory($dir, 0755, true, true);
+
+            $outputFile = fopen($outputFile, "a");
 
             collect($install)
                 ->each(
                     function ($command) use ($build, &$output, $outputFile) {
                         Log::debug('Executing command', compact('command'));
 
-                        $process = new Process($command);
+                        $process = app(Process::class, $command);
                         $process->setTimeout($this->project->timeout);
 
                         try {
@@ -198,8 +217,6 @@ class BuildProject implements ShouldQueue
                 );
 
             fclose($outputFile);
-
-            chdir($cwd);
         }
 
         $build->output = $output;
