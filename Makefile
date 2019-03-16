@@ -1,6 +1,4 @@
-USER = datashaman
-PROJECT = larabuild
-REPO = https://github.com/$(USER)/$(PROJECT).git
+DOCKER_COMPOSE_TESTING = docker-compose -p larabuild_testing -f docker-compose.testing.yml
 TAG = larabuild_app
 
 dummy:
@@ -10,17 +8,8 @@ test:
 
 build: docker-build-tag
 
-setup:
-	php artisan passport:client --name=demo --personal
-
-admin-token: setup
-	php artisan larabuild:access-token adminToken --email=admin-user@example.com
-
-docker-prune-stopped:
-	docker ps -a -q | xargs -r docker rm
-
-docker-prune-untagged:
-	docker images | grep '^<none>' | awk '{print $$3}' | xargs -r docker rmi
+admin-token:
+	php artisan larabuild:access-token --email=admin-user@example.com
 
 docker-prune: docker-prune-stopped docker-prune-untagged
 
@@ -29,3 +18,52 @@ docker-build-build: docker-build-local
 
 docker-build-local:
 	docker build --tag $(TAG) .
+
+db-rebuild:
+	mysqladmin -u$(DB_USERNAME) -p$(DB_PASSWORD) -h$(DB_HOST) drop $(DB_DATABASE)
+	mysqladmin -u$(DB_USERNAME) -p$(DB_PASSWORD) -h$(DB_HOST) create $(DB_DATABASE)
+	php artisan migrate --seed
+
+dc-down:
+	docker-compose down
+
+dc-logs:
+	docker-compose logs -f
+
+dc-nuke:
+	docker-compose down -v --remove-orphans
+
+dc-ps:
+	docker-compose ps
+
+dc-test-bash:
+	$(DOCKER_COMPOSE_TESTING) build
+	$(DOCKER_COMPOSE_TESTING) exec --rm app bash
+
+dc-test-down:
+	$(DOCKER_COMPOSE_TESTING) down
+
+dc-test-logs:
+	$(DOCKER_COMPOSE_TESTING) logs -f
+
+dc-test-nuke:
+	$(DOCKER_COMPOSE_TESTING) down -v --remove-orphans
+
+dc-test-ps:
+	$(DOCKER_COMPOSE_TESTING) ps
+
+dc-test-run:
+	$(DOCKER_COMPOSE_TESTING) exec app php artisan migrate
+	$(DOCKER_COMPOSE_TESTING) exec app phpunit
+
+dc-test-up:
+	$(DOCKER_COMPOSE_TESTING) up --build -d
+
+dc-up:
+	docker-compose up -d
+
+nuke: dc-nuke dc-test-nuke
+
+yarn-production:
+	yarn run production
+	dos2unix public/js/app.js

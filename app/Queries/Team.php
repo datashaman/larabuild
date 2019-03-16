@@ -4,6 +4,7 @@ namespace App\Queries;
 
 use App\Models\Team as TeamModel;
 use GraphQL\Type\Definition\ResolveInfo;
+use Log;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 

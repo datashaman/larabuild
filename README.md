@@ -41,19 +41,15 @@ Migrate the database (optionally seed with demo data):
 
     php artisan migrate
 
-Generate Passport keys:
-
-    php artisan passport:keys
-
 Create an admin user:
 
-    php artisan larabuild:user name email password --roles=admin
+    php artisan larabuild:user name email password --roles=ADMIN
 
-Generate a Bearer access token:
+Get the user's access token:
 
-    php artisan larabuild:access-token tokenName [--id=userId] [--email=userEmail]
+    php artisan larabuild:access-token [--id=userId] [--email=userEmail]
 
-Either `id` or `email` must be specified. `tokenName` should represent the GraphQL client, so _playground_ will do.
+Either `id` or `email` must be specified.
 
 Assuming you use valet, open the [GraphQL playground](http://larabuild.test/graphql-playground).
 
@@ -110,16 +106,17 @@ Create a team to hold our project:
             }
         ",
         "variables": {
+            "id": "example-team",
             "name": "Example Team"
         }
     }
 
-The JSON response will include the team's `id`:
+will respond with:
 
     {
         "data": {
             "createTeam": {
-                "id": 1,
+                "id": "example-team",
                 "name": "Example Team"
             }
         }
@@ -145,6 +142,7 @@ Use the `id` from above in `teamId` and the content of the private key file _lar
         ",
         "variables": {
             "teamId": teamId,
+            "id": "example-project",
             "name": "Example Project",
             "repository": "https://github.com/user/repository.git",
             "privateKey": privateKey
@@ -156,9 +154,9 @@ This will return a JSON response including the project `id`:
     {
         "data": {
             "createProject": {
-                "id": 1,
+                "id": "example-project",
                 "team": {
-                    "id": 1,
+                    "id": "example-team",
                     "name": "Example Team"
                 },
                 "name": "Example Project",
@@ -176,6 +174,7 @@ We will now generate our first build.  As an admin user, you can build projects 
             mutation buildProject($id: ID!, $commit: String!) {
                 buildProject(id: $id, commit: $commit) {
                     id
+                    number
                     status
                     output
                 }
@@ -193,6 +192,7 @@ The commands in the `install` value from `.larabuild.yml` file in the project re
         "data": {
             "buildProject": {
                 "id": "QnVpbGQ6NA==",
+                "number": 1,
                 "status": "success",
                 "output": "hello world\n"
             }
@@ -214,13 +214,13 @@ Regular users (no role)
 - can view their teams, projects and builds
 - can build projects in their teams
 
-Team admin users (`team-admin` role)
+Team admin users (`TEAM_ADMIN` role)
 
 - can update the team
 - can create, update and delete projects
 - can create and update users
 
-Admin users (`admin` role)
+Admin users (`ADMIN` role)
 
 - can access everything
 - can add and remove roles from users

@@ -2,8 +2,8 @@
 
 namespace App\Mutations;
 
+use App\Jobs\BuildProject as BuildProjectJob;
 use App\Models\Project;
-use App\Support\ProjectBuilder;
 use GraphQL\Type\Definition\ResolveInfo;
 use Log;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
@@ -22,12 +22,15 @@ class BuildProject
      */
     public function resolve($rootValue, array $args, GraphQLContext $context, ResolveInfo $resolveInfo)
     {
+        Log::debug("In build project");
         $project = Project::findOrFail($args['id']);
+        Log::debug("Found project for build: " . $project->id);
 
         if (auth()->user()->can('build', $project)) {
-            $build = app(ProjectBuilder::class)->build($project, $args['commit']);
+            Log::debug("Dispatching BuildProject job: " . $project->id);
 
-            return $build;
+            dispatch(new BuildProjectJob($project, $args['commit']));
+            return true;
         }
 
         throw new AuthorizationException('You are not authorized to access buildProject');

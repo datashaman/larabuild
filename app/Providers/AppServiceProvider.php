@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Build;
+use App\Models\User;
+use App\Observers\BuildObserver;
+use App\Observers\UserObserver;
 use Docker\Docker;
 use GitWrapper\GitWrapper;
 use Illuminate\Support\ServiceProvider;
@@ -15,14 +19,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Build::observe(BuildObserver::class);
+        User::observe(UserObserver::class);
     }
 
-    /**
-     * Register any application services.
-     *
-     * @return void
-     */
+   /**
+    * Register any application services.
+    *
+    * @return void
+    */
     public function register()
     {
         $this->app->singleton(

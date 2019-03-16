@@ -5,10 +5,9 @@ namespace Tests\Feature\Queries;
 use App\Models\Build;
 use App\Models\Project;
 use Illuminate\Foundation\Testing\TestResponse;
-use Nuwave\Lighthouse\Execution\Utils\GlobalId;
-use Tests\PassportTestCase;
+use Tests\TokenTestCase;
 
-class ProjectQueriesTest extends PassportTestCase
+class ProjectQueriesTest extends TokenTestCase
 {
     /**
      * @return TestResponse
@@ -16,6 +15,7 @@ class ProjectQueriesTest extends PassportTestCase
     protected function postProjectsQuery()
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -60,17 +60,20 @@ class ProjectQueriesTest extends PassportTestCase
 
     public function testProjectsQueryAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $projects = factory(Project::class, 12)
             ->create()
+            ->sortBy(function($project) {
+                return $project->name;
+            })
             ->take(10)
             ->map(
                 function ($project) {
                     return [
-                        'id' => (string) $project->id,
+                        'id' => $project->id,
                         'team' => [
-                            'id' => (string) $project->team->id,
+                            'id' => $project->team->id,
                             'name' => $project->team->name,
                             'createdAt' => $this->formatDateTime($project->team->created_at),
                             'updatedAt' => $this->formatDateTime($project->team->updated_at),
@@ -82,6 +85,7 @@ class ProjectQueriesTest extends PassportTestCase
                     ];
                 }
             )
+            ->values()
             ->all();
 
         $expected = [
@@ -104,14 +108,15 @@ class ProjectQueriesTest extends PassportTestCase
             ->assertExactJson($expected);
     }
 
-    protected function postProjectQuery(int $id)
+    protected function postProjectQuery(string $id)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
                     'query' => "{
-                        project(id: {$id}) {
+                        project(id: \"{$id}\") {
                             id
                             name
                         }
@@ -127,7 +132,7 @@ class ProjectQueriesTest extends PassportTestCase
         $expected = [
             'data' => [
                 'project' => [
-                    'id' => (string) $project->id,
+                    'id' => $project->id,
                     'name' => $project->name,
                 ],
             ],
@@ -151,7 +156,7 @@ class ProjectQueriesTest extends PassportTestCase
         $expected = [
             'data' => [
                 'project' => [
-                    'id' => (string) $project->id,
+                    'id' => $project->id,
                     'name' => $project->name,
                 ],
             ],
@@ -159,49 +164,6 @@ class ProjectQueriesTest extends PassportTestCase
 
         $this
             ->postProjectQuery($project->id)
-            ->assertStatus(200)
-            ->assertExactJson($expected);
-    }
-
-    public function testProjectBuildsQuery()
-    {
-        $otherBuild = factory(Build::class)->create();
-        $project = factory(Project::class)->create();
-
-        $projectBuilds = factory(Build::class, 3)
-            ->create(
-                [
-                    'project_id' => $project->id,
-                ]
-            )
-            ->map(
-                function ($build) {
-                    return [
-                        'id' => GlobalId::encode('Build', $build->id),
-                        'commit' => $build->commit,
-                    ];
-                }
-            )
-            ->all();
-
-        $expected = [
-            'data' => [
-                'projectBuilds' => $projectBuilds,
-            ],
-        ];
-
-        $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => "{
-                        projectBuilds(projectId: \"{$project->id}\") {
-                            id
-                            commit
-                        }
-                    }",
-                ]
-            )
             ->assertStatus(200)
             ->assertExactJson($expected);
     }

@@ -5,6 +5,7 @@ namespace App\Mutations;
 use App\Models\Project;
 use App\Models\Team;
 use GraphQL\Type\Definition\ResolveInfo;
+use Illuminate\Support\Arr;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -22,11 +23,11 @@ class CreateProject
     public function resolve($rootValue, array $args, GraphQLContext $context, ResolveInfo $resolveInfo)
     {
         $user = auth()->user();
-        $team = Team::findOrFail(array_get($args, 'project.teamId'));
+        $team = Team::findOrFail(Arr::get($args, 'project.teamId'));
 
-        if ($user->hasRole('admin') || $user->hasRole('team-admin', $team)) {
-            array_set($args, 'project.private_key', array_pull($args, 'project.privateKey'));
-            array_set($args, 'project.team_id', array_pull($args, 'project.teamId'));
+        if ($user->hasRole('ADMIN') || $user->hasRole('TEAM_ADMIN', $team)) {
+            Arr::set($args, 'project.private_key', Arr::pull($args, 'project.privateKey'));
+            Arr::set($args, 'project.team_id', Arr::pull($args, 'project.teamId'));
             return Project::create($args['project']);
         }
 

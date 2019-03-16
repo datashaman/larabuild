@@ -14,15 +14,15 @@ class CreateBuildsTable extends Migration
     public function up()
     {
         Schema::create('builds', function (Blueprint $table) {
-            $table->increments('id');
-            $table->integer('project_id')->unsigned();
-            $table->string('status')->default('new');
+            $table->bigIncrements('id');
+            $table->string('project_id');
+            $table->string('status')->default('NEW');
             $table->string('commit');
             $table->text('output')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
 
-            $table->foreign('project_id')->references('id')->on('projects');
+            $table->foreign('project_id')->references('id')->on('projects')->onUpdate('cascade');
         });
     }
 

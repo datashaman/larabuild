@@ -1,0 +1,31 @@
+extend type Query @middleware(checks: ["auth:api"]) {
+    team(id: ID!): Team
+    teams(count: Int!, page: Int, sortBy: String, sortDesc: Boolean): [Team!]! @paginate @can(if: "index", model: "App\\Models\\Team")
+}
+
+extend type Mutation @middleware(checks: ["auth:api"]) {
+    createTeam(
+        team: TeamInput!
+    ): Team @can(if: "create", model: "App\\Models\\Team")
+
+    updateTeam(
+        id: ID! @rules(apply: ["required"])
+        team: TeamInput!
+    ): Team
+
+    deleteTeam(
+        id: ID! @rules(apply: ["required"])
+    ): Team
+}
+
+type Team {
+    id: ID!
+    name: String!
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
+}
+
+input TeamInput {
+    id: String! @rules(apply: ["required", "min:6", "alpha_dash"])
+    name: String! @rules(apply: ["required", "min:6"])
+}

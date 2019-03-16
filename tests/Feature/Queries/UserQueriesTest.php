@@ -5,31 +5,33 @@ namespace Tests\Feature\Queries;
 use App\Models\Team;
 use App\Models\User;
 use Nuwave\Lighthouse\Execution\Utils\GlobalId;
-use Tests\PassportTestCase;
+use Tests\TokenTestCase;
 
-class UserQueriesTest extends PassportTestCase
+class UserQueriesTest extends TokenTestCase
 {
     protected function postUsersQuery()
     {
-        return $this->postJson(
-            '/graphql',
-            [
-                'query' => '{
-                    users(count: 10) {
-                        paginatorInfo {
-                            count
-                            currentPage
-                            lastPage
-                            total
+        return $this
+            ->withBearer()
+            ->postJson(
+                '/graphql',
+                [
+                    'query' => '{
+                        users(count: 10) {
+                            paginatorInfo {
+                                count
+                                currentPage
+                                lastPage
+                                total
+                            }
+                            data {
+                                id
+                                name
+                            }
                         }
-                        data {
-                            id
-                            name
-                        }
-                    }
-                }',
-            ]
-        );
+                    }',
+                ]
+            );
     }
 
     public function testUsersQuery()
@@ -46,7 +48,7 @@ class UserQueriesTest extends PassportTestCase
 
     public function testUsersQueryAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         factory(User::class, 11)->create();
 
@@ -94,6 +96,7 @@ class UserQueriesTest extends PassportTestCase
         }";
 
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -139,50 +142,6 @@ class UserQueriesTest extends PassportTestCase
 
         $this
             ->postUserQuery($globalId)
-            ->assertStatus(200)
-            ->assertExactJson($expected);
-    }
-
-    public function testUserTeamsQuery()
-    {
-        $otherTeam = factory(Team::class)->create();
-        $user = factory(User::class)->create();
-
-        $userTeams = factory(Team::class, 3)
-            ->create()
-            ->each(
-                function ($team) use ($user) {
-                    $team->addUser($user);
-                }
-            )
-            ->map(
-                function ($team) {
-                    return [
-                        'id' => (string) $team->id,
-                        'name' => $team->name,
-                    ];
-                }
-            )
-            ->all();
-
-        $expected = [
-            'data' => [
-                'userTeams' => $userTeams,
-            ],
-        ];
-
-        $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => "{
-                        userTeams(userId: \"{$user->id}\") {
-                            id
-                            name
-                        }
-                    }",
-                ]
-            )
             ->assertStatus(200)
             ->assertExactJson($expected);
     }

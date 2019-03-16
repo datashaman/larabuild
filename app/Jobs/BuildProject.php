@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Support;
+namespace App\Jobs;
 
 use App\Models\Build;
 use App\Models\Project;
@@ -13,50 +13,79 @@ use Docker\API\Model\Mount;
 use Docker\Docker;
 use File;
 use GitWrapper\GitWrapper;
+use Illuminate\Bus\Queueable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Log;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
-class ProjectBuilder
+class BuildProject implements ShouldQueue
 {
-    public function build(Project $project, string $commit)
-    {
-        $build = $project->createBuild($commit);
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
+    /**
+     * @var Project
+     */
+    protected $project;
+
+    /**
+     * @var string
+     */
+    protected $commit;
+
+    /**
+     * @param Project $project
+     * @param string $commit
+     */
+    public function __construct(Project $project, string $commit)
+    {
+        $this->project = $project;
+        $this->commit = $commit;
+    }
+
+    public function handle()
+    {
         $wrapper = app(GitWrapper::class);
 
         $filename = tempnam(sys_get_temp_dir(), 'larabuild');
-        file_put_contents($filename, $build->project->private_key);
+
+        file_put_contents($filename, $this->project->private_key);
         $wrapper->setPrivateKey($filename);
         unlink($filename);
 
-        $workingFolder = storage_path('app/workspace/' . $project->id);
+        $build = $this->project->createBuild($this->commit);
+
+        $workingFolder = $build->getWorkingFolder();
+        Log::debug("Working Folder", compact('workingFolder'));
+
+        $cwd = getcwd();
 
         if (File::isDirectory($workingFolder)) {
-            File::deleteDirectory($workingFolder);
+            chdir($workingFolder);
+            $repo = $wrapper->workingCopy($workingFolder);
+        } else {
+            File::makeDirectory($workingFolder, 0770, true, true);
+            chdir($workingFolder);
+            $repo = $wrapper->cloneRepository($this->project->repository, $workingFolder);
         }
 
-        $git = $wrapper->cloneRepository($build->project->repository, $workingFolder);
-
-        $this->handle($build, $workingFolder);
-
-        return $build;
-    }
-
-    /**
-     * @param Build  $build
-     * @param string $workingFolder
-     */
-    protected function handle(Build $build, string $workingFolder)
-    {
-        $output = '';
+        $repo->reset(['hard' => true]);
+        $repo->clean(['force' => true, 'd' => true]);
+        $repo->checkout($this->commit);
 
         $filename = "$workingFolder/.larabuild.yml";
 
         if (!File::exists($filename)) {
-            $build->status = 'not-found';
+            $build->status = 'NOT_FOUND';
             $build->save();
 
             return;
@@ -64,15 +93,18 @@ class ProjectBuilder
 
         $config = Yaml::parseFile($filename);
 
-        $install = array_get($config, 'install');
+        $install = Arr::get($config, 'install');
 
         if (!is_array($install)) {
             $install = [$install];
         }
 
-        $build->status = 'started';
+        $build->status = 'STARTED';
+        $build->save();
 
-        $docker = (bool) array_get($config, 'docker', false);
+        $output = '';
+
+        $docker = (bool) Arr::get($config, 'docker', false);
 
         if (config('larabuild.docker') && $docker) {
             Log::debug('Docker build');
@@ -111,8 +143,7 @@ class ProjectBuilder
 
                         $stream->onStdout(
                             function ($buffer) use (&$output) {
-                                Log::debug('Stdout', compact('buffer'));
-                                $output .= $buffer;
+                                $output .= date('H:i:s') . ' ' . $buffer;
                             }
                         );
 
@@ -121,7 +152,8 @@ class ProjectBuilder
                                 Log::debug('Stderr', compact('buffer'));
                                 $output .= $buffer;
 
-                                $build->status = 'fail';
+                                $build->status = 'FAIL';
+                                $build->save();
                             }
                         );
 
@@ -136,37 +168,50 @@ class ProjectBuilder
             $cwd = getcwd();
             chdir($workingFolder);
 
+            $outputFile = fopen("$workingFolder/output.txt", "a");
+
             collect($install)
                 ->each(
-                    function ($command) use ($build, &$output) {
+                    function ($command) use ($build, &$output, $outputFile) {
+                        Log::debug('Executing command', compact('command'));
+
                         $process = new Process($command);
+                        $process->setTimeout($this->project->timeout);
 
-                        $process->run(
-                            function ($type, $buffer) use (&$output) {
-                                $output .= $buffer;
-                            }
-                        );
-
-                        if (!$process->isSuccessful()) {
-                            $build->status = 'fail';
+                        try {
+                            $process->mustRun(
+                                function ($type, $buffer) use (&$output, $outputFile) {
+                                    $buffer = date('H:i:s') . ' ' . $buffer;
+                                    fwrite($outputFile, $buffer);
+                                    $output .= $buffer;
+                                }
+                            );
+                        } catch (ProcessFailedException $exception) {
+                            $build->status = 'FAIL';
                             return false;
                         }
                     }
                 );
+
+            fclose($outputFile);
 
             chdir($cwd);
         }
 
         $build->output = $output;
 
-        if ($build->status !== 'fail') {
-            $build->status = 'success';
+        if ($build->status !== 'FAIL') {
+            $build->status = 'SUCCESS';
         }
 
         $build->completed_at = Carbon::now();
 
-        if (!$build->save()) {
+        if ($build->save()) {
+            Log::info('Build saved');
+        } else {
             Log::error('Error saving build', ['errors' => $build->errors()->all()]);
         }
+
+        chdir($cwd);
     }
 }

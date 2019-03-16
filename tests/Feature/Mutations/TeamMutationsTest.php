@@ -4,13 +4,15 @@ namespace Tests\Feature\Mutations;
 
 use App\Models\Team;
 use App\Models\User;
-use Tests\PassportTestCase;
+use Illuminate\Support\Str;
+use Tests\TokenTestCase;
 
-class TeamMutationsTest extends PassportTestCase
+class TeamMutationsTest extends TokenTestCase
 {
     public function postCreateTeam(array $team)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -29,8 +31,11 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testCreateTeam()
     {
+        $name = $this->faker->words(3, true);
+
         $team = [
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
         ];
 
         $this
@@ -47,12 +52,14 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testCreateTeamAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
+
+        $name = $this->faker->words(3, true);
 
         $team = [
-            'name' => $this->faker->words(3, true),
+            'name' => $name,
+            'id' => Str::slug($name),
         ];
-
 
         $this
             ->postCreateTeam($team)
@@ -62,9 +69,10 @@ class TeamMutationsTest extends PassportTestCase
         $this->assertDatabaseHas('teams', $team);
     }
 
-    public function postUpdateTeam(int $id, array $team)
+    public function postUpdateTeam(string $id, array $team)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -85,8 +93,11 @@ class TeamMutationsTest extends PassportTestCase
     {
         $existingTeam = factory(Team::class)->create();
 
+        $name = $this->faker->words(3, true);
+
         $team = [
-            'name' => $this->faker->words(3, true),
+            'name' => $name,
+            'id' => Str::slug($name),
         ];
 
         $this
@@ -103,12 +114,15 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testUpdateTeamAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $existingTeam = factory(Team::class)->create();
 
+        $name = $this->faker->words(3, true);
+
         $team = [
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
         ];
 
         $this
@@ -123,10 +137,13 @@ class TeamMutationsTest extends PassportTestCase
     {
         $team = factory(Team::class)->create();
         $team->addUser($this->user);
-        $this->user->addRole('team-admin', $team);
+        $this->user->addRole('TEAM_ADMIN', $team);
+
+        $name = $this->faker->words(3, true);
 
         $attrs = [
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
         ];
 
         $this
@@ -139,12 +156,15 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testUpdateTeamAsTeamAdminNotInTeam()
     {
-        $this->user->addRole('team-admin');
+        $this->user->addRole('TEAM_ADMIN');
 
         $existingTeam = factory(Team::class)->create();
 
+        $name = $this->faker->words(3, true);
+
         $team = [
-            'name' => $this->faker->words(3, true),
+            'id' => Str::slug($name),
+            'name' => $name,
         ];
 
         $this
@@ -159,9 +179,10 @@ class TeamMutationsTest extends PassportTestCase
         $this->assertDatabaseMissing('teams', $team);
     }
 
-    public function postDeleteTeam(int $id)
+    public function postDeleteTeam(string $id)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -196,12 +217,14 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testDeleteTeamAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $existingTeam = factory(Team::class)->create();
 
+        $name = $this->faker->words(3, true);
+
         $team = [
-            'id' => (string) $existingTeam->id,
+            'id' => $existingTeam->id,
             'name' => $existingTeam->name,
         ];
 
@@ -213,9 +236,10 @@ class TeamMutationsTest extends PassportTestCase
         $this->assertDatabaseMissing('teams', $team);
     }
 
-    public function postAddTeamUser(int $teamId, int $userId)
+    public function postAddTeamUser(string $teamId, int $userId)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -260,7 +284,7 @@ class TeamMutationsTest extends PassportTestCase
     {
         $team = factory(Team::class)->create();
         $team->addUser($this->user);
-        $this->user->addRole('team-admin', $team);
+        $this->user->addRole('TEAM_ADMIN', $team);
 
         $user = factory(User::class)->create();
 
@@ -288,7 +312,7 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testAddTeamUserAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $team = factory(Team::class)->create();
         $user = factory(User::class)->create();
@@ -320,7 +344,7 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testAddTeamUserExisting()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $team = factory(Team::class)->create();
         $user = factory(User::class)->create();
@@ -348,9 +372,10 @@ class TeamMutationsTest extends PassportTestCase
         );
     }
 
-    public function postRemoveTeamUser(int $teamId, int $userId)
+    public function postRemoveTeamUser(string $teamId, int $userId)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -396,7 +421,7 @@ class TeamMutationsTest extends PassportTestCase
     {
         $team = factory(Team::class)->create();
         $team->addUser($this->user);
-        $this->user->addRole('team-admin', $team);
+        $this->user->addRole('TEAM_ADMIN', $team);
 
         $user = factory(User::class)->create();
 
@@ -420,7 +445,7 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testRemoveTeamUserAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $team = factory(Team::class)->create();
         $user = factory(User::class)->create();
@@ -445,7 +470,7 @@ class TeamMutationsTest extends PassportTestCase
 
     public function testRemoveTeamUserMissing()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $team = factory(Team::class)->create();
         $user = factory(User::class)->create();

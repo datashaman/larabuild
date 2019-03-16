@@ -1,0 +1,31 @@
+extend type Mutation @middleware(checks: ["auth:api"]) {
+    addUserRole(
+        id: ID! @rules(apply: ["required"])
+        role: String! @rules(apply: ["required"])
+        teamId: ID
+    ): User @can(if: "addRole", model: "App\\Models\\User")
+
+    removeUserRole(
+        id: ID! @rules(apply: ["required"])
+        role: String! @rules(apply: ["required"])
+        teamId: ID
+    ): User @can(if: "removeRole", model: "App\\Models\\User")
+}
+
+extend type User {
+    userRoles: [UserRole!]
+}
+
+type UserRole {
+    id: ID!
+    user: User!
+    role: String!
+    team: Team
+    createdAt: DateTime! @rename(attribute: "created_at")
+    updatedAt: DateTime @rename(attribute: "updated_at")
+}
+
+enum Role {
+    ADMIN
+    TEAM_ADMIN
+}

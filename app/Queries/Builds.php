@@ -4,6 +4,7 @@ namespace App\Queries;
 
 use App\Models\Build;
 use GraphQL\Type\Definition\ResolveInfo;
+use Illuminate\Support\Arr;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class Builds
@@ -20,7 +21,7 @@ class Builds
      */
     public function resolve($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
-        $page = array_get($args, 'page', 1);
+        $page = Arr::get($args, 'page', 1);
 
         return Build::query()->orderBy('id', 'desc');
     }

@@ -5,13 +5,14 @@ namespace Tests\Feature\Mutations;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Hashing\BcryptHasher;
-use Tests\PassportTestCase;
+use Tests\TokenTestCase;
 
-class UserMutationsTest extends PassportTestCase
+class UserMutationsTest extends TokenTestCase
 {
     public function postCreateUser(array $user)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -55,7 +56,7 @@ class UserMutationsTest extends PassportTestCase
 
     public function testCreateUserAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $attrs = [
             'name' => $this->faker->name,
@@ -77,6 +78,7 @@ class UserMutationsTest extends PassportTestCase
     public function postUpdateUser(int $id, array $user)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -119,7 +121,7 @@ class UserMutationsTest extends PassportTestCase
 
     public function testUpdateUserAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $user = factory(User::class)->create();
 
@@ -143,7 +145,7 @@ class UserMutationsTest extends PassportTestCase
         $team = factory(Team::class)->create();
 
         $this->user->addTeam($team);
-        $this->user->addRole('team-admin', $team);
+        $this->user->addRole('TEAM_ADMIN', $team);
 
         $user = factory(User::class)->create();
         $user->addTeam($team);
@@ -165,7 +167,7 @@ class UserMutationsTest extends PassportTestCase
 
     public function testUpdateUserAsTeamAdminNotInTeam()
     {
-        $this->user->addRole('team-admin');
+        $this->user->addRole('TEAM_ADMIN');
 
         $team = factory(Team::class)->create();
 
@@ -194,6 +196,7 @@ class UserMutationsTest extends PassportTestCase
     public function postDeleteUser(int $id)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -228,7 +231,7 @@ class UserMutationsTest extends PassportTestCase
 
     public function testDeleteUserAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $user = factory(User::class)->create();
 
@@ -250,7 +253,7 @@ class UserMutationsTest extends PassportTestCase
         $team = factory(Team::class)->create();
 
         $this->user->addTeam($team);
-        $this->user->addRole('team-admin', $team);
+        $this->user->addRole('TEAM_ADMIN', $team);
 
         $user = factory(User::class)->create();
         $user->addTeam($team);
@@ -270,7 +273,7 @@ class UserMutationsTest extends PassportTestCase
 
     public function testDeleteUserAsTeamAdminNotInTeam()
     {
-        $this->user->addRole('team-admin');
+        $this->user->addRole('TEAM_ADMIN');
 
         $team = factory(Team::class)->create();
 
@@ -294,14 +297,15 @@ class UserMutationsTest extends PassportTestCase
         $this->assertDatabaseHas('users', $attrs);
     }
 
-    public function postAddRole(int $id, string $role, int $teamId = null)
+    public function postAddRole(int $id, string $role, string $teamId = null)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
-                        mutation addUserRole(\$id: ID!, \$role: String!, \$teamId: Int) {
+                        mutation addUserRole(\$id: ID!, \$role: String!, \$teamId: ID) {
                             addUserRole(id: \$id, role: \$role, teamId: \$teamId) {
                                 userRoles {
                                     role
@@ -322,7 +326,7 @@ class UserMutationsTest extends PassportTestCase
         $user = factory(User::class)->create();
 
         $this
-            ->postAddRole($user->id, 'admin')
+            ->postAddRole($user->id, 'ADMIN')
             ->assertOk()
             ->assertJsonFragment(
                 [
@@ -330,12 +334,12 @@ class UserMutationsTest extends PassportTestCase
                 ]
             );
 
-        $this->assertFalse($user->hasRole('admin'));
+        $this->assertFalse($user->hasRole('ADMIN'));
     }
 
     public function testAddRoleAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $user = factory(User::class)->create();
 
@@ -344,7 +348,7 @@ class UserMutationsTest extends PassportTestCase
                 'addUserRole' => [
                     'userRoles' => [
                         [
-                            'role' => 'admin',
+                            'role' => 'ADMIN',
                             'team' => null,
                         ],
                     ],
@@ -353,16 +357,16 @@ class UserMutationsTest extends PassportTestCase
         ];
 
         $this
-            ->postAddRole($user->id, 'admin')
+            ->postAddRole($user->id, 'ADMIN')
             ->assertOk()
             ->assertJsonFragment($fragment);
 
-        $this->assertTrue($user->hasRole('admin'));
+        $this->assertTrue($user->hasRole('ADMIN'));
     }
 
     public function testAddTeamRoleAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $team = factory(Team::class)->create();
         $user = factory(User::class)->create();
@@ -372,9 +376,9 @@ class UserMutationsTest extends PassportTestCase
                 'addUserRole' => [
                     'userRoles' => [
                         [
-                            'role' => 'team-admin',
+                            'role' => 'TEAM_ADMIN',
                             'team' => [
-                                'id' => (string) $team->id,
+                                'id' => $team->id,
                             ],
                         ],
                     ],
@@ -383,21 +387,22 @@ class UserMutationsTest extends PassportTestCase
         ];
 
         $this
-            ->postAddRole($user->id, 'team-admin', $team->id)
+            ->postAddRole($user->id, 'TEAM_ADMIN', $team->id)
             ->assertOk()
             ->assertJsonFragment($fragment);
 
-        $this->assertTrue($user->hasRole('team-admin', $team));
+        $this->assertTrue($user->hasRole('TEAM_ADMIN', $team));
     }
 
-    public function postRemoveRole(int $id, string $role, int $teamId = null)
+    public function postRemoveRole(int $id, string $role, string $teamId = null)
     {
         return $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
                     'query' => "
-                        mutation removeUserRole(\$id: ID!, \$role: String!, \$teamId: Int) {
+                        mutation removeUserRole(\$id: ID!, \$role: String!, \$teamId: ID) {
                             removeUserRole(id: \$id, role: \$role, teamId: \$teamId) {
                                 userRoles {
                                     role
@@ -416,10 +421,10 @@ class UserMutationsTest extends PassportTestCase
     public function testRemoveRole()
     {
         $user = factory(User::class)->create();
-        $user->addRole('admin');
+        $user->addRole('ADMIN');
 
         $this
-            ->postRemoveRole($user->id, 'admin')
+            ->postRemoveRole($user->id, 'ADMIN')
             ->assertOk()
             ->assertJsonFragment(
                 [
@@ -427,15 +432,15 @@ class UserMutationsTest extends PassportTestCase
                 ]
             );
 
-        $this->assertTrue($user->hasRole('admin'));
+        $this->assertTrue($user->hasRole('ADMIN'));
     }
 
     public function testRemoveRoleAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $user = factory(User::class)->create();
-        $user->addRole('admin');
+        $user->addRole('ADMIN');
 
         $fragment = [
             'data' => [
@@ -447,32 +452,32 @@ class UserMutationsTest extends PassportTestCase
         ];
 
         $this
-            ->postRemoveRole($user->id, 'admin')
+            ->postRemoveRole($user->id, 'ADMIN')
             ->assertOk()
             ->assertJsonFragment($fragment);
 
-        $this->assertFalse($user->hasRole('admin'));
+        $this->assertFalse($user->hasRole('ADMIN'));
     }
 
     public function testRemoveTeamRoleAsAdmin()
     {
-        $this->user->addRole('admin');
+        $this->user->addRole('ADMIN');
 
         $team = factory(Team::class)->create();
         $otherTeam = factory(Team::class)->create();
 
         $user = factory(User::class)->create();
-        $user->addRole('admin', $otherTeam);
-        $user->addRole('admin', $team);
+        $user->addRole('ADMIN', $otherTeam);
+        $user->addRole('ADMIN', $team);
 
         $fragment = [
             'data' => [
                 'removeUserRole' => [
                     'userRoles' => [
                         [
-                            'role' => 'admin',
+                            'role' => 'ADMIN',
                             'team' => [
-                                'id' => (string) $otherTeam->id,
+                                'id' => $otherTeam->id,
                             ],
                         ]
                     ],
@@ -481,10 +486,10 @@ class UserMutationsTest extends PassportTestCase
         ];
 
         $this
-            ->postRemoveRole($user->id, 'admin', $team->id)
+            ->postRemoveRole($user->id, 'ADMIN', $team->id)
             ->assertOk()
             ->assertJsonFragment($fragment);
 
-        $this->assertFalse($user->hasRole('admin'));
+        $this->assertFalse($user->hasRole('ADMIN'));
     }
 }

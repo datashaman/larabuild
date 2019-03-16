@@ -1,9 +1,3 @@
-#
-# Built with https://github.com/datashaman/docker-laravel
-#
-# Packages: beanstalkd elasticsearch google-chrome mailhog mariadb memcached minio redis php7.2 node11
-#
-
 FROM ubuntu:18.04
 
 ARG BUILD_MIRROR="http://za.archive.ubuntu.com"
@@ -92,9 +86,41 @@ USER ${BUILD_USER}
 # Install prestissimo composer package
 RUN composer global require hirak/prestissimo
 
-EXPOSE 9000
-
 ENV HOME=/home/${BUILD_USER}
 ENV PATH=${PATH}:${HOME}/.config/composer/vendor/bin:${HOME}/.local/bin:vendor/bin:node_modules/.bin
+
+USER root
+COPY . /workspace
+RUN chown -R ${BUILD_USER} /workspace
+
+USER ${BUILD_USER}
+
+RUN composer install --no-dev
+RUN php artisan optimize
+RUN php artisan config:cache
+RUN php artisan route:cache
+
+RUN yarn install
+RUN yarn run production
+
+RUN rm -rf node_modules/
+RUN rm -rf $HOME/.cache/composer/files $HOME/.composer/cache/files
+RUN yarn cache clean
+
+RUN composer global remove hirak/prestissimo
+
+USER root
+
+RUN npm uninstall bower brunch gulp-cli -g
+
+RUN rm /usr/local/bin/composer
+
+RUN apt-get purge -y \
+   git \
+   nodejs \
+   yarn
+
+USER ${BUILD_USER}
+EXPOSE 9000
 
 CMD ["/usr/sbin/php-fpm7.2"]

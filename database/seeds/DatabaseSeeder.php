@@ -4,6 +4,7 @@ use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -11,6 +12,7 @@ class DatabaseSeeder extends Seeder
     {
         $team = Team::firstOrCreate(
             [
+                'id' => 'example-team',
                 'name' => 'Example Team',
             ]
         );
@@ -23,22 +25,23 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Regular User',
                 'email_verified_at' => now(),
                 'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
-                'remember_token' => str_random(10),
+                'remember_token' => Str::random(10),
             ]
         );
 
         $adminUser = User::firstOrCreate(
             [
-                'email' => 'admin-user@example.com',
+                'email' => 'admin@example.com',
             ],
             [
                 'name' => 'Admin User',
                 'email_verified_at' => now(),
                 'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
-                'remember_token' => str_random(10),
+                'remember_token' => Str::random(10),
             ]
         );
-        $adminUser->addRole('admin');
+
+        $adminUser->addRole('ADMIN');
 
         $teamUser = User::firstOrCreate(
             [
@@ -48,22 +51,26 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Team User',
                 'email_verified_at' => now(),
                 'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
-                'remember_token' => str_random(10),
+                'remember_token' => Str::random(10),
             ]
         );
 
+        $team->addUser($teamUser);
+
         $teamAdminUser = User::firstOrCreate(
             [
-                'email' => 'team-admin-user@example.com',
+                'email' => 'team-admin@example.com',
             ],
             [
                 'name' => 'Team Admin User',
                 'email_verified_at' => now(),
                 'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
-                'remember_token' => str_random(10),
+                'remember_token' => Str::random(10),
             ]
         );
-        $adminUser->addRole('team-admin', $team);
+
+        $team->addUser($teamAdminUser);
+        $teamAdminUser->addRole('TEAM_ADMIN', $team);
 
         Project::firstOrCreate(
             [
@@ -71,8 +78,9 @@ class DatabaseSeeder extends Seeder
                 'repository' => 'https://github.com/datashaman/larabuild-example.git',
             ],
             [
+                'id' => 'example-project',
                 'name' => 'Example Project',
-                'private_key' => '-----BEGIN RSA PRIVATE KEY-----
+                'private_key' => encrypt('-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEAuFBbL3XE6P4h0JGfjPWwsp6FkfQe5Pg9TsHHA/nNPEw2wx6n
 0B3QClHxTX0IFWcDGnAag1lUBi3ibKv2/fmXIXzuO+kNeyYxgZt8ascAbzc8iBkP
 mjGI8kXbPfww5WA8a37IKa4e/GmBBPnSi7EuM4cGfI1XItIGZPKp2lmXJ34bpFG6
@@ -98,8 +106,8 @@ DDrXUEp672Syq7bWkGjFJ+BhMLig6rwWUyRRM0icEe4jI2jFW4ekCZQouPj0KsNJ
 jp9lwtECgYEAo5an01Buh4HtS5TpW6XN1O/POSKZpcUiFcOTI7j3a3DRN+WG1vgL
 9KAkJT9LIT0gDAWzqOdeLl+Xkgq18eI2T4S/txy0KoR9CX241m0aOGcgZyTrD7+R
 gtP3qkPtKvJQEuFbQnDzfe8GxD6G5rZB/emgMhvaMb/fqOhriZn3Kl4=
------END RSA PRIVATE KEY-----
-                ',
+-----END RSA PRIVATE KEY-----'),
+                'timeout' => 3600,
             ]
         );
     }

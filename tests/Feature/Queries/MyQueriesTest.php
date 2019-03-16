@@ -6,9 +6,9 @@ use App\Models\Build;
 use App\Models\Project;
 use App\Models\Team;
 use Nuwave\Lighthouse\Execution\Utils\GlobalId;
-use Tests\PassportTestCase;
+use Tests\TokenTestCase;
 
-class MyQueriesTest extends PassportTestCase
+class MyQueriesTest extends TokenTestCase
 {
     public function testMeQuery()
     {
@@ -23,6 +23,7 @@ class MyQueriesTest extends PassportTestCase
         ];
 
         $this
+            ->withBearer()
             ->postJson(
                 '/graphql',
                 [
@@ -31,49 +32,6 @@ class MyQueriesTest extends PassportTestCase
                             id
                             name
                             email
-                        }
-                    }",
-                ]
-            )
-            ->assertStatus(200)
-            ->assertExactJson($expected);
-    }
-
-    public function testMyTeamsQuery()
-    {
-        $otherTeam = factory(Team::class)->create();
-
-        $myTeams = factory(Team::class, 3)
-            ->create()
-            ->each(
-                function ($team) {
-                    $team->addUser($this->user);
-                }
-            )
-            ->map(
-                function ($team) {
-                    return [
-                        'id' => (string) $team->id,
-                        'name' => (string) $team->name,
-                    ];
-                }
-            )
-            ->all();
-
-        $expected = [
-            'data' => [
-                'myTeams' => $myTeams,
-            ],
-        ];
-
-        $this
-            ->postJson(
-                '/graphql',
-                [
-                    'query' => "{
-                        myTeams {
-                            id
-                            name
                         }
                     }",
                 ]

@@ -4,6 +4,7 @@ namespace App\Mutations;
 
 use App\Models\Project;
 use GraphQL\Type\Definition\ResolveInfo;
+use Illuminate\Support\Arr;
 use Nuwave\Lighthouse\Exceptions\AuthorizationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -23,8 +24,8 @@ class UpdateProject
         $user = auth()->user();
         $project = Project::findOrFail($args['id']);
 
-        if ($user->hasRole('admin') || $user->hasRole('team-admin', $project->team)) {
-            array_set($args, 'project.private_key', array_pull($args, 'project.privateKey'));
+        if ($user->hasRole('ADMIN') || $user->hasRole('TEAM_ADMIN', $project->team)) {
+            Arr::set($args, 'project.private_key', Arr::pull($args, 'project.privateKey'));
             $project->update($args['project']);
             return $project;
         }

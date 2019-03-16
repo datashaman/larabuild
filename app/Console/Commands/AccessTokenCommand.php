@@ -10,7 +10,7 @@ class AccessTokenCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'larabuild:access-token {tokenName} {--id=} {--email=}';
+    protected $signature = 'larabuild:access-token {--id=} {--email=}';
 
     /**
      * @var string
@@ -31,6 +31,6 @@ class AccessTokenCommand extends Command
             exit(1);
         }
 
-        $this->info($user->createToken($this->argument('tokenName'))->accessToken);
+        $this->info($user->api_token);
     }
 }

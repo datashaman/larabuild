@@ -16,7 +16,7 @@ class UserPolicy extends AbstractPolicy
     {
         $adminTeamIds = $actingUser
             ->userRoles()
-            ->where('user_roles.role', 'team-admin')
+            ->where('user_roles.role', 'TEAM_ADMIN')
             ->pluck('user_roles.team_id');
 
         return $user
@@ -116,7 +116,7 @@ class UserPolicy extends AbstractPolicy
      */
     public function addRole(User $actingUser)
     {
-        return $actingUser->hasRole('admin');
+        return $actingUser->hasRole('ADMIN');
     }
 
     /**
@@ -128,6 +128,6 @@ class UserPolicy extends AbstractPolicy
      */
     public function removeRole(User $actingUser)
     {
-        return $actingUser->hasRole('admin');
+        return $actingUser->hasRole('ADMIN');
     }
 }

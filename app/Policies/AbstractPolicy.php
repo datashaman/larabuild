@@ -15,7 +15,7 @@ abstract class AbstractPolicy
      */
     public function before(User $actingUser, string $ability)
     {
-        if ($actingUser->hasRole('admin')) {
+        if ($actingUser->hasRole('ADMIN')) {
             return true;
         }
     }
