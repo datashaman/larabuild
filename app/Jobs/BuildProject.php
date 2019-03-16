@@ -91,6 +91,12 @@ class BuildProject implements ShouldQueue
             return;
         }
 
+        $composerCache = $build->project->getComposerCache();
+        $npmCache = $build->project->getNpmCache();
+
+        File::makeDirectory($composerCache, 0755, true, true);
+        File::makeDirectory($npmCache, 0755, true, true);
+
         $config = Yaml::parseFile($filename);
 
         $install = Arr::get($config, 'install');
@@ -112,15 +118,14 @@ class BuildProject implements ShouldQueue
             $client = app(Docker::class);
 
             $hostConfig = app(HostConfig::class);
-            $hostConfig->setBinds(["$workingFolder:/workspace"]);
 
-            /*
-            $mount = app(Mount::class);
-            $mount->setTarget('/tmp/cache');
-            $mount->setSource('/tmp/cache');
-            $mount->setType('bind');
-            $hostConfig->setMounts([$mount]);
-            */
+            $hostConfig->setBinds(
+                [
+                    "$composerCache:/home/webapp/.composer/cache",
+                    "$npmCache:/home/webapp/.npm",
+                    "$workingFolder:/workspace",
+                ]
+            );
 
             $containerConfig = app(ContainersCreatePostBody::class);
             $containerConfig->setHostConfig($hostConfig);
