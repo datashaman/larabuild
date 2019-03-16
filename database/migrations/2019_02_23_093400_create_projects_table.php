@@ -18,6 +18,7 @@ class CreateProjectsTable extends Migration
             $table->string('team_id');
             $table->string('name');
             $table->string('repository');
+            $table->string('secret');
             $table->text('private_key');
             $table->timestamps();
 

@@ -1,5 +1,8 @@
 <?php
 
+Route::any('github/{project}', 'GithubController')
+    ->name('github');
+
 Route::get('auth/me', function () {
     return auth()->user();
 })
@@ -22,7 +25,7 @@ Route::post('password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail'
 Route::post('password/reset', 'Auth\ResetPasswordController@reset')
     ->name('password.update');
 
-Route::get('{team}/{project}/{build}/console', 'ConsoleController')
+Route::get('{team}/{project}/{number}/console', 'ConsoleController')
     ->name('builds.console')
     ->middleware('disableBuffer');
 

@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Build;
+use App\Models\Project;
 use App\Models\User;
 use App\Observers\BuildObserver;
+use App\Observers\ProjectObserver;
 use App\Observers\UserObserver;
 use Docker\Docker;
 use GitWrapper\GitWrapper;
@@ -20,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Build::observe(BuildObserver::class);
+        Project::observe(ProjectObserver::class);
         User::observe(UserObserver::class);
     }
 
