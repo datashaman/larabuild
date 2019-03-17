@@ -10,6 +10,7 @@ php_errors.log
 .phpunit.result.cache
 /public/hot
 /public/storage
+/reports/
 *~Stashed changes
 /storage/*.key
 /vendor
