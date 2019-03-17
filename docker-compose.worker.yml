@@ -1,0 +1,27 @@
+version: '2'
+
+services:
+  worker:
+    image: datashaman/larabuild-worker
+    environment:
+      - DB_DATABASE
+      - DB_HOST
+      - DB_PASSWORD
+      - DB_USERNAME
+      - HOME
+    command: bash
+    volumes:
+      - "${COMPOSER_CACHE}:/home/webapp/.composer/cache"
+      - "${NPM_CACHE}:/home/webapp/.cache/yarn/v4"
+      - "${WORKSPACE}:/workspace"
+    depends_on:
+      - db
+    tty: true
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: "${DB_DATABASE}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_USER: "${DB_USERNAME}"

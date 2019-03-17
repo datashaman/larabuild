@@ -1,5 +1,3 @@
-docker: true
-
 install:
-  - ['composer', 'install', '--no-ansi']
-  - ['yarn', 'install', '--no-progress']
+  - composer install --no-ansi
+  - vendor/bin/phpunit

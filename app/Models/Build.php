@@ -43,7 +43,7 @@ class Build extends Model
     /**
      * @return string
      */
-    public function getWorkingFolder()
+    public function getWorkspace()
     {
         return storage_path("app/workspace/{$this->project->id}/{$this->number}");
     }
