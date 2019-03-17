@@ -22,9 +22,10 @@ class VerifyGithubSignature
             throw new Exception('Cannot verify signature without project');
         }
 
+        $content = (string) $request->getContent();
+
         if (
             in_array($request->header('X-GitHub-Event'), ['pull_request', 'push'])
-            && $content = (string) $request->getContent()
             && $this->verifySignature($content, $project->secret, $request->header('X-Hub-Signature'))
         ) {
             return $next($request);
