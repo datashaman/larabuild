@@ -58,14 +58,6 @@ class BuildProject implements ShouldQueue
      */
     public function processBuffer($type, $buffer, $outputFile)
     {
-        Log::debug("Before", ['buffer' => $buffer]);
-
-        $codes = [];
-        for ($x=0; $x < strlen($buffer); $x++) {
-            $codes[] = ord($buffer[$x]);
-        }
-        Log::debug("Codes", ['codes' => $codes]);
-
         $buffer = collect(preg_split('/\n/', $buffer))
             ->map(
                 function ($line) use ($type) {
@@ -77,8 +69,6 @@ class BuildProject implements ShouldQueue
                 }
             )
             ->implode("\r\n");
-
-        Log::debug("After", ['buffer' => $buffer]);
 
         fwrite($outputFile, $buffer);
 
