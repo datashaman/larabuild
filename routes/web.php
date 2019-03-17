@@ -1,7 +1,8 @@
 <?php
 
 Route::any('github/{project}', 'GithubController')
-    ->name('github');
+    ->name('github')
+    ->middleware('github');
 
 Route::get('auth/me', 'AuthController@me')
     ->middleware('auth')
