@@ -51,6 +51,40 @@ class BuildProject implements ShouldQueue
         $this->commit = $commit;
     }
 
+    /**
+     * @param string $type
+     * @param string $buffer
+     * @param resource $outputFile
+     */
+    public function processBuffer($type, $buffer, $outputFile)
+    {
+        Log::debug("Before", ['buffer' => $buffer]);
+
+        $codes = [];
+        for ($x=0; $x < strlen($buffer); $x++) {
+            $codes[] = ord($buffer[$x]);
+        }
+        Log::debug("Codes", ['codes' => $codes]);
+
+        $buffer = collect(preg_split('/\n/', $buffer))
+            ->map(
+                function ($line) use ($type) {
+                    if (trim($line)) {
+                        return date('H:i:s') . " [$type] " . $line;
+                    }
+
+                    return $line;
+                }
+            )
+            ->implode("\r\n");
+
+        Log::debug("After", ['buffer' => $buffer]);
+
+        fwrite($outputFile, $buffer);
+
+        return $buffer;
+    }
+
     public function handle()
     {
         $wrapper = app(GitWrapper::class);
@@ -162,17 +196,13 @@ class BuildProject implements ShouldQueue
 
                         $stream->onStdout(
                             function ($buffer) use (&$output, $outputFile) {
-                                $buffer = date('H:i:s') . ' ' . $buffer;
-                                fwrite($outputFile, $buffer);
-                                $output .= $buffer;
+                                $output .= $this->processBuffer('out', $buffer, $outputFile);
                             }
                         );
 
                         $stream->onStderr(
                             function ($buffer) use (&$output, $outputFile) {
-                                $buffer = date('H:i:s') . ' ' . $buffer;
-                                fwrite($outputFile, $buffer);
-                                $output .= $buffer;
+                                $output .= $this->processBuffer('err', $buffer, $outputFile);
                             }
                         );
 
@@ -209,9 +239,7 @@ class BuildProject implements ShouldQueue
                         try {
                             $process->mustRun(
                                 function ($type, $buffer) use (&$output, $outputFile) {
-                                    $buffer = date('H:i:s') . ' ' . $buffer;
-                                    fwrite($outputFile, $buffer);
-                                    $output .= $buffer;
+                                    $output .= $this->processBuffer($type, $buffer, $outputFile);
                                 }
                             );
                         } catch (ProcessFailedException $exception) {
