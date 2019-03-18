@@ -4,12 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Build;
 use App\Models\Project;
-use Docker\API\Model\ContainersCreatePostBody;
-use Docker\API\Model\ContainersIdExecPostBody;
-use Docker\API\Model\ExecIdStartPostBody;
-use Docker\API\Model\HostConfig;
-use Docker\API\Model\Mount;
-use Docker\Docker;
+use Exception;
 use File;
 use GitWrapper\GitWrapper;
 use Illuminate\Bus\Queueable;
@@ -19,6 +14,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Log;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -42,6 +38,16 @@ class BuildProject implements ShouldQueue
     protected $commit;
 
     /**
+     * @var string
+     */
+    protected $password;
+
+    /**
+     * @var int
+     */
+    public $timeout = 86400;
+
+    /**
      * @param Project $project
      * @param string $commit
      */
@@ -49,15 +55,21 @@ class BuildProject implements ShouldQueue
     {
         $this->project = $project;
         $this->commit = $commit;
+        $this->password = Str::random(16);
     }
 
     /**
      * @param string $type
      * @param string $buffer
      * @param resource $outputFile
+     *
+     * @return string
      */
-    public function processBuffer($type, $buffer, $outputFile)
-    {
+    protected function processBuffer(
+        string $type,
+        string $buffer,
+        $outputFile
+    ): string {
         $buffer = collect(preg_split('/\n/', $buffer))
             ->map(
                 function ($line) use ($type) {
@@ -68,11 +80,155 @@ class BuildProject implements ShouldQueue
                     return $line;
                 }
             )
-            ->implode("\r\n");
+            ->implode("\n");
 
         fwrite($outputFile, $buffer);
 
         return $buffer;
+    }
+
+    /**
+     * @param Build  $build
+     * @param string $workspace
+     * @param array  $cmd
+     * @param resource|null $outputFile
+     *
+     * @return string
+     */
+    protected function createDockerComposeProcess(
+        Build $build,
+        string $workspace,
+        array $cmd,
+        $outputFile = null
+    ): string {
+        if (false && !is_resource($outputFile)) {
+            throw new Exception('outputFile must be a resource');
+        }
+
+        $projectId = snake_case($build->project->id);
+
+        $cmdLine = "/usr/local/bin/docker-compose --no-ansi -p {$projectId}_{$build->number} -f ". base_path('docker-compose.worker.yml') . ' ' . implode(' ', $cmd);
+        Log::debug("Command Line", compact('cmdLine'));
+
+        $composerCache = $build->project->getComposerCache();
+        $npmCache = $build->project->getNpmCache();
+
+        $env = [
+            'COMPOSER_CACHE' => $composerCache,
+            'DB_DATABASE' => "{$projectId}_testing",
+            'DB_HOST' => 'db',
+            'DB_USERNAME' => "{$projectId}_testing",
+            'DB_PASSWORD' => $this->password,
+            'HOME' => '/home/webapp',
+            'NPM_CACHE' => $npmCache,
+            'WORKSPACE' => $workspace,
+        ];
+
+        $process = Process::fromShellCommandLine(
+            $cmdLine,
+            '/tmp',
+            $env
+        );
+
+        $process->setTimeout(86400);
+        $process->setIdleTimeout(3600);
+        $process->setPty(true);
+
+        $output = '';
+
+        if ($outputFile) {
+            $process->mustRun(
+                function ($type, $buffer) use (&$output, $outputFile) {
+                    if (is_resource($outputFile)) {
+                        $output .= $this->processBuffer($type, $buffer, $outputFile);
+                    }
+                }
+            );
+        } else {
+            $process->mustRun();
+        }
+
+        return $output;
+    }
+
+    /**
+     * @param Build    $build
+     * @param string   $workspace
+     * @param resource $outputFile
+     *
+     * @return string
+     */
+    protected function dockerComposeUp(Build $build, string $workspace, $outputFile): string
+    {
+        return $this->createDockerComposeProcess($build, $workspace, ['up', '-d']);
+    }
+
+    /**
+     * @param Build    $build
+     * @param string   $workspace
+     * @param resource $outputFile
+     *
+     * @return string
+     */
+    protected function dockerComposeRemove(Build $build, string $workspace, $outputFile): string
+    {
+        return '';
+        return $this->createDockerComposeProcess($build, $workspace, ['rm', '--force', '--stop']);
+    }
+
+    /**
+     * @param Build    $build
+     * @param string   $workspace
+     * @param string   $cmd
+     * @param resource $outputFile
+     *
+     * @return string
+     */
+    protected function dockerComposeExec(
+        Build $build,
+        string $workspace,
+        string $cmd,
+        $outputFile
+    ) {
+        return $this->createDockerComposeProcess(
+            $build,
+            $workspace,
+            ['exec', 'worker', $cmd],
+            $outputFile
+        );
+    }
+
+    /**
+     * @param Build $build
+     *
+     * @return string
+     */
+    protected function createWorkspace(Build $build): string
+    {
+        $workspace = $build->getWorkspace();
+        Log::debug("Working Dir", compact('workspace'));
+
+        if (File::isDirectory($workspace)) {
+            File::deleteDirectory($workspace);
+        }
+
+        File::makeDirectory($workspace, 0770, true, true);
+
+        return $workspace;
+    }
+
+    /**
+     * @param Build $build
+     *
+     * @return resource
+     */
+    protected function createOutputFile(Build $build)
+    {
+        $outputFile = $build->getOutputFile();
+        $dir = dirname($outputFile);
+        File::makeDirectory($dir, 0755, true, true);
+
+        return fopen($outputFile, "a");
     }
 
     public function handle()
@@ -88,25 +244,18 @@ class BuildProject implements ShouldQueue
         $build = $this->project->createBuild($this->commit);
         Log::debug("Build", compact('build'));
 
-        $workingFolder = $build->getWorkingFolder();
-        Log::debug("Working Folder", compact('workingFolder'));
-
         $build->status = 'CHECKOUT';
         $build->save();
 
-        if (File::isDirectory($workingFolder)) {
-            File::deleteDirectory($workingFolder);
-        }
-
-        File::makeDirectory($workingFolder, 0770, true, true);
+        $workspace = $this->createWorkspace($build);
 
         $cwd = getcwd();
-        chdir($workingFolder);
+        chdir($workspace);
 
-        $repo = $wrapper->cloneRepository($this->project->repository, $workingFolder);
+        $repo = $wrapper->cloneRepository($this->project->repository, $workspace);
         $repo->checkout($this->commit);
 
-        $filename = "$workingFolder/.larabuild.yml";
+        $filename = "$workspace/.larabuild.yml";
 
         if (!File::exists($filename)) {
             $build->status = 'NOT_FOUND';
@@ -114,6 +263,8 @@ class BuildProject implements ShouldQueue
 
             return;
         }
+
+        $projectId = snake_case($build->project->id);
 
         $composerCache = $build->project->getComposerCache();
         $npmCache = $build->project->getNpmCache();
@@ -129,118 +280,38 @@ class BuildProject implements ShouldQueue
             $install = [$install];
         }
 
+        /*
+        $install = [
+            'echo $DB_HOST',
+            'echo $DB_DATABASE',
+            'echo $NPM_CACHE',
+        ];
+         */
+
         $build->status = 'BUILDING';
         $build->save();
 
-        $output = '';
+        $outputFile = $this->createOutputFile($build);
 
-        $docker = (bool) Arr::get($config, 'docker', false);
+        $output = $this->dockerComposeUp($build, $workspace, $outputFile);
 
-        if (config('larabuild.docker') && $docker) {
-            Log::debug('Docker build');
+        $output .= collect($install)
+            ->reduce(
+                function ($acc, $cmd) use ($build, $workspace, $outputFile) {
+                    $acc .= $this->dockerComposeExec(
+                        $build,
+                        $workspace,
+                        $cmd,
+                        $outputFile
+                    );
 
-            $client = app(Docker::class);
-
-            $hostConfig = app(HostConfig::class);
-
-            $hostConfig->setBinds(
-                [
-                    "$composerCache:/home/webapp/.composer/cache",
-                    "$npmCache:/home/webapp/.npm",
-                    "$workingFolder:/workspace",
-                ]
+                    return $acc;
+                }, ''
             );
 
-            $containerConfig = app(ContainersCreatePostBody::class);
-            $containerConfig->setHostConfig($hostConfig);
-            $containerConfig->setImage('datashaman/larabuild-worker:latest');
-            $containerConfig->setCmd(['bash']);
-            $containerConfig->setTty(true);
+        fclose($outputFile);
 
-            $containerCreateResult = $client->containerCreate($containerConfig);
-            $containerId = $containerCreateResult->getId();
-
-            $client->containerStart($containerId);
-
-            $outputFile = $build->getOutputFile();
-            $dir = dirname($outputFile);
-            File::makeDirectory($dir, 0755, true, true);
-
-            $outputFile = fopen($outputFile, "a");
-
-            collect($install)
-                ->each(
-                    function ($command) use ($build, $client, $containerId, &$output, $outputFile) {
-                        $execConfig = app(ContainersIdExecPostBody::class);
-                        $execConfig->setAttachStderr(true);
-                        $execConfig->setAttachStdout(true);
-                        $execConfig->setWorkingDir('/workspace');
-                        $execConfig->setCmd($command);
-
-                        $execId = $client->containerExec($containerId, $execConfig)->getId();
-
-                        $execStartConfig = app(ExecIdStartPostBody::class);
-                        $execStartConfig->setDetach(false);
-
-                        $stream = $client->execStart($execId, $execStartConfig);
-
-                        $stream->onStdout(
-                            function ($buffer) use (&$output, $outputFile) {
-                                $output .= $this->processBuffer('out', $buffer, $outputFile);
-                            }
-                        );
-
-                        $stream->onStderr(
-                            function ($buffer) use (&$output, $outputFile) {
-                                $output .= $this->processBuffer('err', $buffer, $outputFile);
-                            }
-                        );
-
-                        $stream->wait();
-                    }
-                );
-
-            fclose($outputFile);
-
-            $client->containerKill($containerId, [
-                'signal' => 'SIGKILL',
-            ]);
-        } else {
-            Log::debug('Local build');
-
-            $cwd = getcwd();
-            chdir($workingFolder);
-
-            $outputFile = $build->getOutputFile();
-
-            $dir = dirname($outputFile);
-            File::makeDirectory($dir, 0755, true, true);
-
-            $outputFile = fopen($outputFile, "a");
-
-            collect($install)
-                ->each(
-                    function ($command) use ($build, &$output, $outputFile) {
-                        Log::debug('Executing command', compact('command'));
-
-                        $process = app(Process::class, $command);
-                        $process->setTimeout($this->project->timeout);
-
-                        try {
-                            $process->mustRun(
-                                function ($type, $buffer) use (&$output, $outputFile) {
-                                    $output .= $this->processBuffer($type, $buffer, $outputFile);
-                                }
-                            );
-                        } catch (ProcessFailedException $exception) {
-                            $build->status = 'FAILED';
-                            return false;
-                        }
-                    }
-                );
-
-            fclose($outputFile);
-        }
+        $output .= $this->dockerComposeRemove($build, $workspace, $outputFile);
 
         $build->output = $output;
 
