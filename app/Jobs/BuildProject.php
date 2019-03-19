@@ -35,7 +35,17 @@ class BuildProject implements ShouldQueue
     /**
      * @var string
      */
-    protected $commit;
+    protected $title;
+
+    /**
+     * @var string
+     */
+    protected $href;
+
+    /**
+     * @var string
+     */
+    protected $sha;
 
     /**
      * @var string
@@ -49,12 +59,20 @@ class BuildProject implements ShouldQueue
 
     /**
      * @param Project $project
-     * @param string $commit
+     * @param string $title
+     * @param string $ref
+     * @param string $sha
      */
-    public function __construct(Project $project, string $commit)
-    {
+    public function __construct(
+        Project $project,
+        string $title,
+        string $ref,
+        string $sha
+    ) {
         $this->project = $project;
-        $this->commit = $commit;
+        $this->title = $title;
+        $this->ref = $ref;
+        $this->sha = $sha;
         $this->password = Str::random(16);
     }
 
@@ -134,21 +152,17 @@ class BuildProject implements ShouldQueue
         $process->setIdleTimeout(3600);
         $process->setPty(true);
 
-        $output = '';
-
         if ($outputFile) {
             $process->mustRun(
                 function ($type, $buffer) use (&$output, $outputFile) {
                     if (is_resource($outputFile)) {
-                        $output .= $this->processBuffer($type, $buffer, $outputFile);
+                        $this->processBuffer($type, $buffer, $outputFile);
                     }
                 }
             );
         } else {
             $process->mustRun();
         }
-
-        return $output;
     }
 
     /**
@@ -241,7 +255,7 @@ class BuildProject implements ShouldQueue
         $wrapper->setPrivateKey($filename);
         unlink($filename);
 
-        $build = $this->project->createBuild($this->commit);
+        $build = $this->project->createBuild($this->sha);
         Log::debug("Build", compact('build'));
 
         $build->status = 'CHECKOUT';
@@ -253,7 +267,7 @@ class BuildProject implements ShouldQueue
         chdir($workspace);
 
         $repo = $wrapper->cloneRepository($this->project->repository, $workspace);
-        $repo->checkout($this->commit);
+        $repo->checkout($this->sha);
 
         $filename = "$workspace/.larabuild.yml";
 
@@ -280,40 +294,30 @@ class BuildProject implements ShouldQueue
             $install = [$install];
         }
 
-        /*
-        $install = [
-            'echo $DB_HOST',
-            'echo $DB_DATABASE',
-            'echo $NPM_CACHE',
-        ];
-         */
-
         $build->status = 'BUILDING';
         $build->save();
 
         $outputFile = $this->createOutputFile($build);
 
-        $output = $this->dockerComposeUp($build, $workspace, $outputFile);
+        $this->dockerComposeUp($build, $workspace, $outputFile);
 
-        $output .= collect($install)
-            ->reduce(
-                function ($acc, $cmd) use ($build, $workspace, $outputFile) {
-                    $acc .= $this->dockerComposeExec(
+        collect($install)
+            ->each(
+                function ($cmd) use ($build, $workspace, $outputFile) {
+                    $this->dockerComposeExec(
                         $build,
                         $workspace,
                         $cmd,
                         $outputFile
                     );
-
-                    return $acc;
-                }, ''
+                }
             );
+
+        $this->dockerComposeRemove($build, $workspace, $outputFile);
 
         fclose($outputFile);
 
-        $output .= $this->dockerComposeRemove($build, $workspace, $outputFile);
-
-        $build->output = $output;
+        $build->output = file_get_contents($outputFile);
 
         if ($build->status !== 'FAILED') {
             $build->status = 'OK';

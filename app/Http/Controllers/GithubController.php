@@ -18,10 +18,36 @@ class GithubController extends Controller
      */
     public function __invoke(Request $request, Project $project)
     {
-        $payload = $request->all();
-        $ref = array_get($payload, 'ref', array_get($payload, 'pull_request.head.ref'));
-        $commit = preg_replace('#^refs/heads/#', '', $ref);
+        $event = $request->header('X-GitHub-Event');
 
-        dispatch(new BuildProject($project, $commit));
+        if (!in_array($event, ['pull_request', 'push'])) {
+            return;
+        }
+
+        switch ($event) {
+        case 'pull_request':
+            $action = $request->get('action');
+
+            if (!in_array($action, ['opened', 'reopened'])) {
+                return;
+            }
+
+            $title = $request->get('pull_request.title');
+            $ref = $request->get('pull_request.head.ref');
+            $sha = $request->get('pull_request.head.sha');
+            break;
+
+        case 'push':
+            if ($request->get('deleted')) {
+                return;
+            }
+
+            $title = $request->get('head_commit.message');
+            $ref = $request->get('ref');
+            $sha = $request->get('after');
+            break;
+        }
+
+        dispatch(new BuildProject($project, $title, $ref, $sha));
     }
 }

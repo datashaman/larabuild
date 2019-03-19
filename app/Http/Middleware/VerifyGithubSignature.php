@@ -25,8 +25,11 @@ class VerifyGithubSignature
         $content = (string) $request->getContent();
 
         if (
-            in_array($request->header('X-GitHub-Event'), ['pull_request', 'push'])
-            && $this->verifySignature($content, $project->secret, $request->header('X-Hub-Signature'))
+            $this->verifySignature(
+                $content,
+                $project->secret,
+                $request->header('X-Hub-Signature')
+            )
         ) {
             return $next($request);
         }
@@ -37,11 +40,11 @@ class VerifyGithubSignature
     /**
      * @param string $content
      * @param string $secret
-     * @param string $userSignature
+     * @param string $requestSignature
      */
-    protected function verifySignature(string $content, string $secret, string $userSignature)
+    protected function verifySignature(string $content, string $secret, string $requestSignature)
     {
         $knownSignature = 'sha1=' . hash_hmac('sha1', $content, $secret);
-        return hash_equals($knownSignature, $userSignature);
+        return hash_equals($knownSignature, $requestSignature);
     }
 }
