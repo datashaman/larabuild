@@ -6,6 +6,9 @@ php:
   - '7.1'
   - '7.2'
 
+addons:
+  artifacts: true
+
 services:
   - docker
   - mysql
