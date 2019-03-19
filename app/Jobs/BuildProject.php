@@ -79,16 +79,14 @@ class BuildProject implements ShouldQueue
     /**
      * @param string $type
      * @param string $buffer
-     * @param resource $outputFile
      *
      * @return string
      */
-    protected function processBuffer(
+    protected function prefixBuffer(
         string $type,
-        string $buffer,
-        $outputFile
+        string $buffer
     ): string {
-        $buffer = collect(preg_split('/\n/', $buffer))
+        return collect(preg_split('/\n/', $buffer))
             ->map(
                 function ($line) use ($type) {
                     if (trim($line)) {
@@ -99,7 +97,21 @@ class BuildProject implements ShouldQueue
                 }
             )
             ->implode("\n");
+    }
 
+    /**
+     * @param string   $type
+     * @param string   $buffer
+     * @param resource $outputFile
+     *
+     * @return string
+     */
+    protected function processBuffer(
+        string $type,
+        string $buffer,
+        $outputFile
+    ): string {
+        $buffer = $this->prefixBuffer($type, $buffer);
         fwrite($outputFile, $buffer);
 
         return $buffer;
