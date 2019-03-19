@@ -4,6 +4,7 @@ namespace Tests\Feature\Mutations;
 
 use App\Models\Project;
 use App\Models\Team;
+use GuzzleHttp\Client;
 use Illuminate\Support\Str;
 use Tests\TokenTestCase;
 
@@ -388,6 +389,11 @@ class ProjectMutationsTest extends TokenTestCase
 
     public function testBuildProject()
     {
+        $this->mock(Client::class)
+            ->shouldReceive('post')
+            ->with(
+            );
+
         $project = factory(Project::class)->create(
             [
                 'repository' => 'https://github.com/datashaman/larabuild-example.git',

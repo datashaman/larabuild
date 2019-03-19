@@ -105,11 +105,11 @@ class Project extends Model
      */
     public function getOwnerRepoAttribute(): string
     {
-        if (preg_match('#^https?://github\.com/([^/]*)/([^/]*)#', $this->repository, $match)) {
+        if (preg_match('#^https?://github\.com/([^/]*)/([^/]*)(\.git)?#', $this->repository, $match)) {
             return $match[1] . '/'. $match[2];
         }
 
-        if (preg_match('#^git@github\.com:([^/]*)/([^/]*)#', $this->repository, $match)) {
+        if (preg_match('#^git@github\.com:([^/]*)/([^/]*)(\.git)?#', $this->repository, $match)) {
             return $match[1] . '/'. $match[2];
         }
     }
