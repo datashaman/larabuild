@@ -40,7 +40,7 @@ class BuildProject implements ShouldQueue
     /**
      * @var string
      */
-    protected $href;
+    protected $ref;
 
     /**
      * @var string
