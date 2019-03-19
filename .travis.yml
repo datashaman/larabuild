@@ -14,7 +14,7 @@ services:
   - mysql
 
 before_install:
-  - docker pull ubuntu
+  - docker pull datashaman/larabuild-worker
 
 install:
   - composer install
