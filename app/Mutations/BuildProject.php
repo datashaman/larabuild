@@ -29,7 +29,11 @@ class BuildProject
         if (auth()->user()->can('build', $project)) {
             Log::debug("Dispatching BuildProject job: " . $project->id);
 
-            dispatch(new BuildProjectJob($project, $args['commit']));
+            // TODO: Fetch these
+            $title = '';
+            $ref = '';
+
+            dispatch(new BuildProjectJob($project, $title, $ref, $args['commit']));
             return true;
         }
 
