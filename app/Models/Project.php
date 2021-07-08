@@ -99,4 +99,18 @@ class Project extends Model
     {
         return storage_path("app/cache/{$this->id}/composer");
     }
+
+    /**
+     * @return string
+     */
+    public function getOwnerRepoAttribute(): string
+    {
+        if (preg_match('#^https?://github\.com/([^/]*)/([^/\.]*)(\.git)?#', $this->repository, $match)) {
+            return $match[1] . '/'. $match[2];
+        }
+
+        if (preg_match('#^git@github\.com:([^/]*)/([^/\.]*)(\.git)?#', $this->repository, $match)) {
+            return $match[1] . '/'. $match[2];
+        }
+    }
 }
